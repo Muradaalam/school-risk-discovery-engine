@@ -304,8 +304,14 @@ Evidence is the fundamental traceable unit used by the intelligence layer.
         Document from which the evidence was obtained.
 
     evidence_group_id
-        Identifier for evidence referring to the same underlying
-        claim/event when grouping is appropriate.
+        Optional identifier used to group evidence records that refer to
+        the same underlying claim or event.
+
+        Evidence grouping must not merge genuinely independent observations.
+        Independent evidence remains represented as separate Evidence records.
+
+        Relationships between individual evidence records are represented
+        through EvidenceRelation.
 
     independence_type
         Classification of the relationship of this evidence to other evidence:
@@ -427,6 +433,7 @@ Examples:
             RESOLVED
             VERIFIED
             UNKNOWN
+            CONFLICTED
 
     first_detected_at
         Earliest known date.
