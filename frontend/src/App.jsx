@@ -1,11 +1,16 @@
+
+import Sidebar from './components/Sidebar'
 import './App.css'
 
 function App() {
   return (
-    <div>
-      <h1>School Risk Discovery Engine</h1>
-      <p>School Evidence & Inspection Priority System</p>
-      <p>Frontend developed by Shahjad</p>
+    <div className="app-layout">
+      <Sidebar />
+
+      <main className="main-content">
+        <h1>Dashboard</h1>
+        <p>School Evidence & Inspection Priority System</p>
+      </main>
     </div>
   )
 }
