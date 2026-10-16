@@ -8,65 +8,6 @@
   min-height: 100vh;
 }
 
-.sidebar {
-  width: 250px;
-  min-width: 250px;
-  background: #11263d;
-  color: white;
-  padding: 28px 16px;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 10px 32px;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-.brand-icon {
-  font-size: 28px;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  border-radius: 8px;
-  color: #c5d2df;
-  font-size: 14px;
-}
-
-.menu-icon {
-  font-size: 20px;
-  width: 24px;
-  text-align: center;
-}
-
-.sidebar-link.active {
-  background: #1e5288;
-  color: white;
-}
-
-.sidebar-footer {
-  margin-top: auto;
-  padding: 20px 10px 0;
-  font-size: 11px;
-  color: #91a4b8;
-  border-top: 1px solid #334b63;
-}
-
 .main-content {
   flex: 1;
   padding: 35px;
@@ -74,18 +15,4 @@
   color: #172b4d;
 }
 
-@media (max-width: 650px) {
-  .app-layout {
-    flex-direction: column;
-  }
 
-  .sidebar {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-}

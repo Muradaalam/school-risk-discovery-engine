@@ -1,16 +1,21 @@
+import './Sidebar.css'
 
 const menuItems = [
-  { name: 'Dashboard', icon: '▦' },
-  { name: 'Schools', icon: '▤' },
-  { name: 'Map', icon: '⌖' },
-  { name: 'Analytics', icon: '▥' },
+  { name: 'Dashboard', icon: '/dashboard.png' },
+  { name: 'Schools', icon: '/schoo.png' },
+  { name: 'Map', icon: '/map.png' },
+  { name: 'Analytics', icon: '/analytics.png' },
 ]
 
 function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <span className="brand-icon">🏫</span>
+        <img
+           src="/school.png"
+           alt="School Risk Discovery Engine"
+           className="brand-logo"
+        />
         <span>School Risk<br />Discovery Engine</span>
       </div>
 
@@ -20,8 +25,12 @@ function Sidebar() {
             key={item.name}
             className={`sidebar-link ${index === 0 ? 'active' : ''}`}
           >
-            <span className="menu-icon">{item.icon}</span>
-            <span>{item.name}</span>
+            {item.icon.startsWith('/') ? (
+      <img src={item.icon} alt="" className="menu-icon-img" />
+      ) : (
+        <span className="menu-icon">{item.icon}</span>
+      )}
+        <span>{item.name}</span>
           </div>
         ))}
       </nav>

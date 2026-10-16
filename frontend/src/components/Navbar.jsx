@@ -1,9 +1,15 @@
+import './Navbar.css'
+
+import { Search, Bell, ChevronDown } from 'lucide-react'
 
 function Navbar() {
   return (
     <header className="top-navbar">
+
+      {/* Left: Search bar */}
       <div className="navbar-search">
-        <span>⌕</span>
+        <Search size={18} className="search-icon" />
+
         <input
           type="text"
           placeholder="Search schools, districts, or UDISE code..."
@@ -12,10 +18,21 @@ function Navbar() {
         />
       </div>
 
+      {/* Right: Notifications and profile */}
       <div className="navbar-actions">
-        <span className="user-avatar">S</span>
-        <span className="user-name">Shahjad</span>
+
+        <span className="notification-icon">
+          <Bell size={20} />
+        </span>
+
+        <div className="user-profile">
+          <div className="user-avatar">U</div>
+          <span className="user-name">User</span>
+          <ChevronDown size={16} />
+        </div>
+
       </div>
+
     </header>
   )
 }
