@@ -1,6 +1,7 @@
 
 import Sidebar from './components/Sidebar'
 import Navbar from './components/Navbar'
+import Dashboard from './pages/Dashboard'
 import './App.css'
 
 function App() {
@@ -12,8 +13,7 @@ function App() {
         <Navbar />
 
         <main className="main-content">
-          <h1>Dashboard</h1>
-          <p>School Evidence & Inspection Priority System</p>
+          <Dashboard />
         </main>
       </div>
     </div>
