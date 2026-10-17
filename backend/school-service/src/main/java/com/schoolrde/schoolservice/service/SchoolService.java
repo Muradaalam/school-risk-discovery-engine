@@ -8,9 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.schoolrde.schoolservice.dao.bussiness.SchoolDao;
+import com.schoolrde.schoolservice.dto.IssueResponseDto;
 import com.schoolrde.schoolservice.dto.SchoolRequestDto;
 import com.schoolrde.schoolservice.dto.SchoolResponseDto;
+import com.schoolrde.schoolservice.dto.SchoolWithIssueResponseDto;
+import com.schoolrde.schoolservice.entity.IssueEntity;
 import com.schoolrde.schoolservice.entity.SchoolEntity;
+import com.schoolrde.schoolservice.entity.SchoolWithIssueEntity;
 import com.schoolrde.schoolservice.exception.CustomException;
 
 @Service
@@ -21,7 +25,7 @@ public class SchoolService{
     @Autowired
     SchoolDao schoolDao;
 
-    public SchoolResponseDto getSchoolById(String schoolId){
+    public SchoolResponseDto getSchoolBySchoolId(String schoolId){
     	LOGGER.debug("Fetching school with schoolId : {}", schoolId);
 
         SchoolEntity schoolEntity=schoolDao.findBySchoolId(schoolId)
@@ -34,8 +38,21 @@ public class SchoolService{
         return convertToResponseDto(schoolEntity);
     }
     
+
+    public SchoolWithIssueResponseDto getSchoolById(int id){
+    	LOGGER.debug("Fetching school with Id : {}", id);
+
+    	SchoolWithIssueEntity schoolWithIssueEntity=schoolDao.findById(id)
+                .orElseThrow(()->{
+                	LOGGER.warn("School not found with Id : {}", id);
+                    return new CustomException("E9001");
+                });
+
+        LOGGER.info("School retrieved successfully with Id : {}",id);
+        return convertToSchoolWithIssueResponseDto(schoolWithIssueEntity);
+    }
     
-    public Long createSchool(SchoolRequestDto schoolRequestDto){
+    public Integer createSchool(SchoolRequestDto schoolRequestDto){
         if(schoolRequestDto.getSchoolId() == null || schoolRequestDto.getSchoolId().isBlank()){
         	LOGGER.warn("School creation failed: schoolId is missing");
             throw new CustomException("E9003");
@@ -95,7 +112,7 @@ public class SchoolService{
     }
 
     private SchoolResponseDto convertToResponseDto(SchoolEntity schoolEntity){
-        LOGGER.info("Creating SchoolResponseDto");
+        LOGGER.info("Creating SchoolResponseDto...");
         SchoolResponseDto schoolResponseDto=new SchoolResponseDto();
         schoolResponseDto.setId(schoolEntity.getId());
         schoolResponseDto.setSchoolId(schoolEntity.getSchoolId());
@@ -114,4 +131,48 @@ public class SchoolService{
         schoolResponseDto.setUpdatedBy(schoolEntity.getUpdatedBy());
         return schoolResponseDto;
     }
+    
+    private SchoolWithIssueResponseDto convertToSchoolWithIssueResponseDto(SchoolWithIssueEntity schoolWithIssueEntity){
+    	
+    	LOGGER.info("Creating SchoolWithIssueResponseDto...");
+        SchoolWithIssueResponseDto schoolWithIssueResponseDto = new SchoolWithIssueResponseDto();
+
+        schoolWithIssueResponseDto.setId(schoolWithIssueEntity.getId());
+        schoolWithIssueResponseDto.setSchoolId(schoolWithIssueEntity.getSchoolId());
+        schoolWithIssueResponseDto.setUdiseCode(schoolWithIssueEntity.getUdiseCode());
+        schoolWithIssueResponseDto.setSchoolName(schoolWithIssueEntity.getSchoolName());
+        schoolWithIssueResponseDto.setState(schoolWithIssueEntity.getState());
+        schoolWithIssueResponseDto.setDistrict(schoolWithIssueEntity.getDistrict());
+        schoolWithIssueResponseDto.setBlock(schoolWithIssueEntity.getBlock());
+        schoolWithIssueResponseDto.setLatitude(schoolWithIssueEntity.getLatitude());
+        schoolWithIssueResponseDto.setLongitude(schoolWithIssueEntity.getLongitude());
+        schoolWithIssueResponseDto.setSchoolType(schoolWithIssueEntity.getSchoolType());
+        schoolWithIssueResponseDto.setManagementType(schoolWithIssueEntity.getManagementType());
+
+        List<IssueResponseDto> issues = schoolWithIssueEntity.getIssues()
+                .stream().map(this::convertToIssueResponseDto)
+                .collect(Collectors.toList());
+
+        schoolWithIssueResponseDto.setIssues(issues);
+
+        return schoolWithIssueResponseDto;
+    }
+
+    private IssueResponseDto convertToIssueResponseDto(IssueEntity issueEntity) {
+
+        IssueResponseDto issueResponseDto = new IssueResponseDto();
+
+        issueResponseDto.setId(issueEntity.getId());
+        issueResponseDto.setIssueTypeId(issueEntity.getIssueTypeId());
+        issueResponseDto.setStatusId(issueEntity.getStatusId());
+        issueResponseDto.setFirstDetected(issueEntity.getFirstDetected());
+        issueResponseDto.setLastUpdated(issueEntity.getLastUpdated());
+        issueResponseDto.setResolvedAt(issueEntity.getResolvedAt());
+        issueResponseDto.setIssueType(issueEntity.getIssueType().getIssue_type());
+        issueResponseDto.setIssueTypeDescription(issueEntity.getIssueType().getDescription());
+        issueResponseDto.setStatus(issueEntity.getIssueStatus().getStatus());
+        issueResponseDto.setStatusDescription(issueEntity.getIssueStatus().getDescription());
+        return issueResponseDto;
+    }
+
 }
