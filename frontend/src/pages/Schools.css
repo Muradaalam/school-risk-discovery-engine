@@ -1,0 +1,209 @@
+
+.schools-page {
+  width: 100%;
+}
+
+.schools-heading {
+  margin-bottom: 28px;
+}
+
+.schools-heading h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #172b4d;
+}
+
+.schools-heading p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.schools-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.schools-table-card h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: #172b4d;
+}
+
+.schools-table-card p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+
+/* Table heading */
+
+.schools-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.schools-table-header h2 {
+  margin: 0;
+}
+
+.demo-label {
+  font-size: 12px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+/* Table */
+
+.schools-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.schools-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 700px;
+}
+
+.schools-table th {
+  padding: 15px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.schools-table td {
+  padding: 17px 15px;
+  font-size: 13px;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.schools-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.schools-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.school-name {
+  font-weight: 600;
+  color: #172b4d !important;
+}
+
+/* Priority badges */
+
+.priority-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.priority-high {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.priority-medium {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.priority-low {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.priority-not-assessed {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+
+/* Search and filter controls */
+
+.schools-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.schools-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 420px;
+  padding: 11px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #64748b;
+}
+
+.schools-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #334155;
+  font-size: 13px;
+}
+
+.schools-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #64748b;
+}
+
+.schools-filter select {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #334155;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.schools-empty {
+  text-align: center;
+  padding: 30px !important;
+  color: #94a3b8 !important;
+}
+
+.schools-result-count {
+  margin: 18px 0 0 !important;
+  font-size: 12px !important;
+  color: #64748b !important;
+}
+
+@media (max-width: 700px) {
+  .schools-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .schools-search {
+    max-width: none;
+  }
+}

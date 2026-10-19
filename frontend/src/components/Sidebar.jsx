@@ -7,7 +7,7 @@ const menuItems = [
   { name: 'Analytics', icon: '/analytics.png' },
 ]
 
-function Sidebar() {
+function Sidebar({ activePage, onPageChange }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -21,9 +21,12 @@ function Sidebar() {
 
       <nav className="sidebar-nav">
         {menuItems.map((item, index) => (
-          <div
-            key={item.name}
-            className={`sidebar-link ${index === 0 ? 'active' : ''}`}
+          <button
+               type="button"
+               key={item.name}
+               className={`sidebar-link ${activePage === item.name ? 'active' : ''}`}
+               onClick={() => onPageChange(item.name)}
+               disabled={!['Dashboard', 'Schools'].includes(item.name)}
           >
             {item.icon.startsWith('/') ? (
       <img src={item.icon} alt="" className="menu-icon-img" />
@@ -31,7 +34,7 @@ function Sidebar() {
         <span className="menu-icon">{item.icon}</span>
       )}
         <span>{item.name}</span>
-          </div>
+          </button>
         ))}
       </nav>
 
