@@ -103,5 +103,55 @@ COLLATE=utf8mb4_0900_ai_ci;
 INSERT INTO issue (school_id, issue_type_id, status_id, first_detected, last_updated, resolved_at) VALUES
 (1000000, 1, 1, '2025-07-15', '2025-08-10 10:30:00', NULL),
 (1000001, 2, 2, '2025-08-01', '2025-08-20 12:00:00', NULL),
-(1000002, 3, 5, '2025-09-05', '2025-09-12 11:00:00', NULL);
+(1000002, 3, 5, '2025-09-05', '2025-09-12 11:00:00', NULL),
+(1000002, 4, 1, '2025-09-05', '2025-09-12 11:00:00', NULL);
+#---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
+
+#3 Event
+#3.1 even_type : contains master data related to event types
+CREATE TABLE event_type (
+id int NOT NULL AUTO_INCREMENT,
+event_type varchar(30) NOT NULL,
+description varchar(100) DEFAULT NULL,
+PRIMARY KEY (id),
+UNIQUE KEY event_type (event_type))
+ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO event_type (id, event_type, description) VALUES
+(1, 'INFRASTRUCTURE_REVIEW', 'Review of school infrastructure and facilities'),
+(2, 'ENVIRONMENT', 'Environmental activities such as tree plantation'),
+(3, 'SPORTS', 'Sports activities and competitions'),
+(4, 'HEALTH', 'Health checkups and health awareness programmes'),
+(5, 'OTHER', 'Other school-related events');
+
+#3.2 event : conatains event related data
+CREATE TABLE event (
+id int NOT NULL AUTO_INCREMENT,
+school_id int NOT NULL,
+event_type_id int NOT NULL,
+detailed_description varchar(150),
+event_date date DEFAULT NULL,
+location varchar(50) DEFAULT NULL,
+created_on timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+created_by varchar(50) DEFAULT (current_user()),
+updated_on timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+updated_by varchar(50) DEFAULT (current_user()),
+PRIMARY KEY (id),
+KEY idx_event_school_id (school_id),
+KEY idx_event_type_id (event_type_id),
+CONSTRAINT fk_event_school FOREIGN KEY (school_id) REFERENCES school (id),
+CONSTRAINT fk_event_type FOREIGN KEY (event_type_id) REFERENCES event_type (id))
+ENGINE=InnoDB  
+AUTO_INCREMENT=3000000
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO event (school_id, event_type_id, detailed_description, event_date, location) VALUES
+(1000000, 1, 'Inspection of school building and infrastructure facilities', '2026-10-05', 'School Campus'),
+(1000000, 2, 'Tree plantation drive organized by students and teachers', '2026-07-15', 'School Garden'),
+(1000001, 3, 'Annual sports competition for school students', '2026-08-20', 'School Playground'),
+(1000001, 4, 'Health checkup and health awareness programme for students', '2026-09-10', 'School Campus'),
+(1000002, 1, 'Review of classroom conditions and drinking water facilities', '2026-09-18', 'School Campus'),
+(1000002, 5, 'School community meeting to discuss development activities', '2026-10-10', 'School Hall');
+#---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
 
