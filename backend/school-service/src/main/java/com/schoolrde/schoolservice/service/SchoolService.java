@@ -9,12 +9,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.schoolrde.schoolservice.dao.bussiness.SchoolDao;
 import com.schoolrde.schoolservice.dto.IssueResponseDto;
+import com.schoolrde.schoolservice.dto.ProjectResponseDto;
 import com.schoolrde.schoolservice.dto.SchoolRequestDto;
 import com.schoolrde.schoolservice.dto.SchoolResponseDto;
 import com.schoolrde.schoolservice.dto.SchoolWithIssueResponseDto;
+import com.schoolrde.schoolservice.dto.TenderResponseDto;
 import com.schoolrde.schoolservice.entity.IssueEntity;
+import com.schoolrde.schoolservice.entity.ProjectEntity;
 import com.schoolrde.schoolservice.entity.SchoolEntity;
 import com.schoolrde.schoolservice.entity.SchoolWithIssueEntity;
+import com.schoolrde.schoolservice.entity.TenderEntity;
 import com.schoolrde.schoolservice.exception.CustomException;
 
 @Service
@@ -160,11 +164,10 @@ public class SchoolService{
 
     private IssueResponseDto convertToIssueResponseDto(IssueEntity issueEntity) {
 
+    	LOGGER.info("Creating IssueResponseDto...");
         IssueResponseDto issueResponseDto = new IssueResponseDto();
 
         issueResponseDto.setId(issueEntity.getId());
-        issueResponseDto.setIssueTypeId(issueEntity.getIssueTypeId());
-        issueResponseDto.setStatusId(issueEntity.getStatusId());
         issueResponseDto.setFirstDetected(issueEntity.getFirstDetected());
         issueResponseDto.setLastUpdated(issueEntity.getLastUpdated());
         issueResponseDto.setResolvedAt(issueEntity.getResolvedAt());
@@ -172,7 +175,62 @@ public class SchoolService{
         issueResponseDto.setIssueTypeDescription(issueEntity.getIssueType().getDescription());
         issueResponseDto.setStatus(issueEntity.getIssueStatus().getStatus());
         issueResponseDto.setStatusDescription(issueEntity.getIssueStatus().getDescription());
+
+        List<ProjectResponseDto> projects = issueEntity.getProjects()
+                .stream().map(this::convertToProjectResponseDto)
+                .collect(Collectors.toList());
+
+        issueResponseDto.setProjects(projects);
         return issueResponseDto;
+    }
+    
+    private ProjectResponseDto convertToProjectResponseDto(ProjectEntity projectEntity){
+
+    	LOGGER.info("Creating ProjectResponseDto...");
+        ProjectResponseDto projectResponseDto = new ProjectResponseDto();
+
+        projectResponseDto.setId(projectEntity.getId());
+        projectResponseDto.setIssueId(projectEntity.getIssueId());
+        projectResponseDto.setProjectType(projectEntity.getProjectType());
+        projectResponseDto.setProjectDescription(projectEntity.getProjectDescription());
+        projectResponseDto.setProjectStatus(projectEntity.getProjectStatus());
+        projectResponseDto.setEstimatedCost(projectEntity.getEstimatedCost());
+        projectResponseDto.setActualCost(projectEntity.getActualCost());
+        projectResponseDto.setStartDate(projectEntity.getStartDate());
+        projectResponseDto.setExpectedCompletionDate(projectEntity.getExpectedCompletionDate());
+        projectResponseDto.setActualCompletionDate(projectEntity.getActualCompletionDate());
+        projectResponseDto.setRemarks(projectEntity.getRemarks());
+        List<TenderResponseDto> tenders = projectEntity.getTenders()
+                .stream().map(this::convertToTenderResponseDto)
+                .collect(Collectors.toList());
+
+        projectResponseDto.setTenders(tenders);        
+
+        return projectResponseDto;
+    }
+    
+    private TenderResponseDto convertToTenderResponseDto(TenderEntity tenderEntity){
+
+        
+    	LOGGER.info("Creating TenderResponseDto...");
+        TenderResponseDto tenderResponseDto = new TenderResponseDto();
+
+        tenderResponseDto.setId(tenderEntity.getId());
+        tenderResponseDto.setProjectId(tenderEntity.getProjectId());
+        tenderResponseDto.setTenderNumber(tenderEntity.getTenderNumber());
+        tenderResponseDto.setTenderTitle(tenderEntity.getTenderTitle());
+        tenderResponseDto.setTenderDescription(tenderEntity.getTenderDescription());
+        tenderResponseDto.setTenderStatus(tenderEntity.getTenderStatus().getStatus());
+        tenderResponseDto.setEstimatedAmount(tenderEntity.getEstimatedAmount());
+        tenderResponseDto.setAwardedAmount(tenderEntity.getAwardedAmount());
+        tenderResponseDto.setPublicationDate(tenderEntity.getPublicationDate());
+        tenderResponseDto.setSubmissionDeadline(tenderEntity.getSubmissionDeadline());
+        tenderResponseDto.setAwardDate(tenderEntity.getAwardDate());
+        tenderResponseDto.setContractorName(tenderEntity.getContractorName());
+        tenderResponseDto.setContractStartDate(tenderEntity.getContractStartDate());
+        tenderResponseDto.setContractEndDate(tenderEntity.getContractEndDate());
+
+        return tenderResponseDto;
     }
 
 }
