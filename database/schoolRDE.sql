@@ -155,3 +155,95 @@ INSERT INTO event (school_id, event_type_id, detailed_description, event_date, l
 (1000002, 5, 'School community meeting to discuss development activities', '2026-10-10', 'School Hall');
 #---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
 
+#4 project : contrains data related to repair work or new construction
+CREATE TABLE project (
+id int NOT NULL AUTO_INCREMENT,
+issue_id int DEFAULT NULL,
+project_type varchar(30) NOT NULL DEFAULT 'NEW',
+project_description varchar(150) DEFAULT NULL,
+project_status varchar(30) NOT NULL DEFAULT 'PENDING',
+estimated_cost decimal(10,2) DEFAULT NULL,
+actual_cost decimal(10,2) DEFAULT NULL,
+start_date date DEFAULT NULL,
+expected_completion_date date DEFAULT NULL,
+actual_completion_date date DEFAULT NULL,
+remarks varchar(150) DEFAULT NULL,
+created_on timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+created_by varchar(50) DEFAULT (current_user()),
+updated_on timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+updated_by varchar(50) DEFAULT (current_user()),
+PRIMARY KEY (id),
+KEY idx_project_issue_id (issue_id),
+CONSTRAINT fk_project_issue FOREIGN KEY (issue_id) REFERENCES issue (id)) 
+ENGINE=InnoDB
+AUTO_INCREMENT=4000000
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_0900_ai_ci;
+select * from issue;
+INSERT INTO project (issue_id, project_type, project_description, project_status, estimated_cost, actual_cost, start_date, expected_completion_date, actual_completion_date, remarks) VALUES
+(2000000, 'REPAIR', 'Repair structural damage to the school building', 'COMPLETED', 100000.00, 100000.00, '2026-05-01', '2026-08-15', '2026-08-10','Building repair completed successfully'),
+(2000001, 'REPAIR', 'Repair damaged classroom flooring', 'IN_PROGRESS', 80000.00, NULL, '2026-09-10', '2026-11-15', NULL, 'Repair work is currently in progress'),
+(2000002, 'REPAIR', 'Repair damaged school boundary wall', 'PENDING', 120000.00, NULL, NULL, '2026-12-15', NULL, 'Awaiting approval to begin repair'),
+(2000003, 'NEW', 'Construction of a new drinking water tank', 'IN_PROGRESS', 200000.00, NULL, '2026-10-01', '2026-12-30', NULL,'New water tank construction');
+
+#---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
+
+#5 tender
+#5.1 tender_status :  contains master data related to tender
+CREATE TABLE tender_status (
+id int NOT NULL AUTO_INCREMENT,
+status varchar(30) NOT NULL,
+description varchar(100) DEFAULT NULL,
+PRIMARY KEY (id),
+UNIQUE KEY tender_status (status))
+ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO tender_status (id, status, description) VALUES
+(1, 'DRAFT', 'Tender is being prepared'),
+(2, 'PUBLISHED', 'Tender has been published for bidding'),
+(3, 'OPEN', 'Tender is open for bid submissions'),
+(4, 'CLOSED', 'Bid submission deadline has passed'),
+(5, 'UNDER_EVALUATION', 'Submitted bids are being evaluated'),
+(6, 'AWARDED', 'Tender has been awarded to a contractor'),
+(7, 'CANCELLED', 'Tender has been cancelled'),
+(8, 'COMPLETED', 'Tender-related contract work has been completed'),
+(9, 'OTHER', 'Other tender status');
+
+#5.3 tender : contains tender data related to infrastructore_work
+CREATE TABLE tender (
+id int NOT NULL AUTO_INCREMENT,
+project_id int NOT NULL,
+tender_number varchar(30) NOT NULL,
+tender_title varchar(100) NOT NULL,
+tender_description varchar(100),
+tender_status_id int NOT NULL,
+estimated_amount decimal(10,2) DEFAULT NULL,
+awarded_amount decimal(10,2) DEFAULT NULL,
+publication_date date DEFAULT NULL,
+submission_deadline date DEFAULT NULL,
+award_date date DEFAULT NULL,
+contractor_name varchar(50) DEFAULT NULL,
+contract_start_date date DEFAULT NULL,
+contract_end_date date DEFAULT NULL,
+created_on timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+created_by varchar(50) DEFAULT (current_user()),
+updated_on timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+updated_by varchar(50) DEFAULT (current_user()),
+PRIMARY KEY (id),
+UNIQUE KEY tender_number (tender_number),
+KEY idx_tender_project_id (project_id),
+KEY idx_tender_status_id (tender_status_id),
+CONSTRAINT fk_tender_status FOREIGN KEY (tender_status_id) REFERENCES tender_status (id),
+CONSTRAINT fk_tender_project FOREIGN KEY (project_id) REFERENCES project (id))
+ENGINE=InnoDB
+AUTO_INCREMENT=5000000
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO tender (project_id, tender_number, tender_title, tender_description, tender_status_id, estimated_amount, awarded_amount, publication_date, submission_deadline, award_date, contractor_name, contract_start_date, contract_end_date) VALUES
+(4000000, '2026-001', 'School Building Repair', 'Repair structural damage to the school building', 8, 100000.00, 100000.00, '2026-03-01', '2026-03-20', '2026-03-25', 'Shivam constructions', '2026-05-01', '2026-08-15'),
+(4000001, '2026-002', 'Classroom Flooring Repair', 'Repair damaged classroom flooring', 6, 80000.00, 78000.00, '2026-08-15', '2026-08-30', '2026-09-02', 'Shivam constructions', '2026-09-10', '2026-11-15'),
+(4000002, '2026-003', 'Boundary Wall Repair', 'Repair damaged school boundary wall', 5, 120000.00, NULL, '2026-10-01', '2026-10-30', NULL, NULL, NULL, NULL),
+(4000003, '2026-004', 'Drinking Water Tank Construction', 'Construction of a new drinking water tank', 6, 200000.00, 195000.00, '2026-08-15', '2026-09-01','2026-09-05', 'Shivam constructions', '2026-10-01', '2026-12-30');
+#---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
+
