@@ -1,6 +1,8 @@
 package com.schoolrde.schoolservice.entity;
 
 import java.sql.Date;
+import java.util.List;
+import java.util.Optional;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,6 +12,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -58,7 +62,10 @@ public class IssueEntity{
 	@Column(name = "updated_by", insertable = false, updatable = false)
 	private String updated_by;
 	
-	
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "issue_id", referencedColumnName = "id", insertable = false, updatable = false)
+	private List<ProjectEntity> projects;
+
 	public Integer getId(){
         return id;
     }
@@ -163,6 +170,13 @@ public class IssueEntity{
         this.updated_by = updated_by;
     }
 
+	public List<ProjectEntity> getProjects(){
+		return projects;
+	}
+
+	public void setProjects(List<ProjectEntity> projects){
+		this.projects = projects;
+	}
 }
 
 

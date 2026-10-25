@@ -1,19 +1,20 @@
 package com.schoolrde.schoolservice.dto;
 
 import java.sql.Date;
+import java.util.List;
 
 public class IssueResponseDto{
 
     private Integer id;
-    private Integer issueTypeId;
     private String issueType;
     private String issueTypeDescription;
-    private Integer statusId;
     private String status;
     private String statusDescription;
     private Date firstDetected;
     private Date lastUpdated;
     private Date resolvedAt;
+    private List<ProjectResponseDto> projects;
+
 
     public Integer getId(){
         return id;
@@ -21,14 +22,6 @@ public class IssueResponseDto{
 
     public void setId(Integer id){
         this.id = id;
-    }
-
-    public Integer getIssueTypeId(){
-        return issueTypeId;
-    }
-
-    public void setIssueTypeId(Integer issueTypeId){
-        this.issueTypeId = issueTypeId;
     }
 
     public String getIssueType(){
@@ -45,14 +38,6 @@ public class IssueResponseDto{
 
     public void setIssueTypeDescription(String issueTypeDescription){
         this.issueTypeDescription = issueTypeDescription;
-    }
-
-    public Integer getStatusId(){
-        return statusId;
-    }
-
-    public void setStatusId(Integer statusId){
-        this.statusId = statusId;
     }
 
     public String getStatus(){
@@ -94,4 +79,13 @@ public class IssueResponseDto{
     public void setResolvedAt(Date resolvedAt){
         this.resolvedAt = resolvedAt;
     }
+    
+    public List<ProjectResponseDto> getProjects() {
+        return projects;
+    }
+
+    public void setProjects(List<ProjectResponseDto> projects) {
+        this.projects = projects;
+    }
+
 }
