@@ -17,7 +17,7 @@ public class IssueType{
 	private Integer id; 
 	
 	@Column(name = "issue_type", nullable = false, length = 30, unique = true)
-	private String issue_type;
+	private String issueType;
 
 	@Column(name = "description", length = 100)
 	private String description;
@@ -31,11 +31,11 @@ public class IssueType{
     }
 
     public String getIssue_type(){
-        return issue_type;
+        return issueType;
     }
 
-    public void setIssueType(String issue_type){
-        this.issue_type = issue_type;
+    public void setIssueType(String issueType){
+        this.issueType = issueType;
     }
 
     public String getDescription(){

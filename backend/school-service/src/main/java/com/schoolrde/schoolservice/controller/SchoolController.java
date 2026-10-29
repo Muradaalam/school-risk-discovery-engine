@@ -8,11 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
+import com.schoolrde.schoolservice.dto.EventResponseDto;
 import com.schoolrde.schoolservice.dto.RequestLoggerDto;
 import com.schoolrde.schoolservice.dto.ResponseLoggerDto;
 import com.schoolrde.schoolservice.dto.SchoolRequestDto;
 import com.schoolrde.schoolservice.dto.SchoolResponseDto;
 import com.schoolrde.schoolservice.dto.SchoolWithIssueResponseDto;
+import com.schoolrde.schoolservice.service.EventService;
 import com.schoolrde.schoolservice.service.SchoolService;
 import com.schoolrde.schoolservice.util.JsonUtility;
 
@@ -26,6 +28,9 @@ public class SchoolController{
     
 	@Autowired
 	SchoolService schoolService;
+
+	@Autowired
+	EventService eventService;
 
 	@GetMapping("/csrf-token")
 	public CsrfToken getCsrfToken(CsrfToken csrfToken){
@@ -56,7 +61,7 @@ public class SchoolController{
 }
 
     @GetMapping("/getSchool/id")
-    public ResponseEntity<SchoolWithIssueResponseDto> getSchoolById(@RequestParam int id, HttpServletRequest request) throws Exception{
+    public ResponseEntity<SchoolWithIssueResponseDto> getSchoolById(@RequestParam Integer id, HttpServletRequest request) throws Exception{
     	
     	String uri = request.getRequestURI();
     	String method = request.getMethod();
@@ -124,4 +129,32 @@ public class SchoolController{
     	LOGGER.info("Response: {}", JsonUtility.toJson(responseLoggerDto));
     	return ResponseEntity.ok("School with schoolId " + schoolId + " deleted successfully");
     }
+    
+    
+    @GetMapping("/getEvent/id")
+    public ResponseEntity<EventResponseDto> getEventById(@RequestParam Integer id, HttpServletRequest request) throws Exception{
+
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+
+        RequestLoggerDto requestLoggerDto = new RequestLoggerDto();
+        requestLoggerDto.setApi(uri);
+        requestLoggerDto.setMethod(method);
+        requestLoggerDto.setRequestBody("{\"id\":\"" + id + "\"}");
+
+        LOGGER.info("Request : {}", JsonUtility.toJson(requestLoggerDto));
+
+        EventResponseDto eventResponseDto = eventService.getEventById(id);
+
+        ResponseLoggerDto responseLoggerDto = new ResponseLoggerDto();
+        responseLoggerDto.setApi(uri);
+        responseLoggerDto.setMethod(method);
+        responseLoggerDto.setStatusCode(HttpStatus.OK.value());
+        responseLoggerDto.setResponseBody(JsonUtility.toJson(eventResponseDto));
+
+        LOGGER.info("Response : {}", JsonUtility.toJson(responseLoggerDto));
+
+        return ResponseEntity.ok(eventResponseDto);
+    }
+
 }

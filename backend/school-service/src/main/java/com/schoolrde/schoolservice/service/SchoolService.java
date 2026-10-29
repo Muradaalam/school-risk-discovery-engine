@@ -28,7 +28,7 @@ public class SchoolService{
     
     @Autowired
     SchoolDao schoolDao;
-
+    
     public SchoolResponseDto getSchoolBySchoolId(String schoolId){
     	LOGGER.debug("Fetching school with schoolId : {}", schoolId);
 
@@ -232,5 +232,5 @@ public class SchoolService{
 
         return tenderResponseDto;
     }
-
+    
 }
