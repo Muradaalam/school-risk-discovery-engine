@@ -34,7 +34,6 @@ INSERT INTO school (school_id, udise_code, school_name, state, district, block,l
 
 #2 issue tables
 #2.1 A master table containing issue types
-
 CREATE TABLE issue_type(
 id int NOT NULL AUTO_INCREMENT,
 issue_type varchar(30) NOT NULL,
@@ -57,7 +56,6 @@ INSERT INTO issue_type (id, issue_type, description) VALUES
 (10, 'MID_DAY_MEAL_QUALITY_SAFETY', 'Issues related to food quality, nutrition and kitchen hygiene'),
 (11, 'MID_DAY_MEAL_MANAGEMENT', 'Issues related to kitchen infrastructure, cooking staff'),
 (12, 'OTHER', 'Other infrastructure problems');
-
 
 #2.2 A master table containing issue statuses
 CREATE TABLE issue_status( 
@@ -101,10 +99,11 @@ DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_0900_ai_ci;
 
 INSERT INTO issue (school_id, issue_type_id, status_id, first_detected, last_updated, resolved_at) VALUES
-(1000000, 1, 1, '2025-07-15', '2025-08-10 10:30:00', NULL),
+(1000000, 1, 3, '2025-07-15', '2025-08-10 10:30:00', NULL),
 (1000001, 2, 2, '2025-08-01', '2025-08-20 12:00:00', NULL),
 (1000002, 3, 5, '2025-09-05', '2025-09-12 11:00:00', NULL),
 (1000002, 4, 1, '2025-09-05', '2025-09-12 11:00:00', NULL);
+
 #---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
 
 #3 Event
@@ -179,7 +178,7 @@ ENGINE=InnoDB
 AUTO_INCREMENT=4000000
 DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_0900_ai_ci;
-select * from issue;
+
 INSERT INTO project (issue_id, project_type, project_description, project_status, estimated_cost, actual_cost, start_date, expected_completion_date, actual_completion_date, remarks) VALUES
 (2000000, 'REPAIR', 'Repair structural damage to the school building', 'COMPLETED', 100000.00, 100000.00, '2026-05-01', '2026-08-15', '2026-08-10','Building repair completed successfully'),
 (2000001, 'REPAIR', 'Repair damaged classroom flooring', 'IN_PROGRESS', 80000.00, NULL, '2026-09-10', '2026-11-15', NULL, 'Repair work is currently in progress'),
@@ -240,6 +239,8 @@ AUTO_INCREMENT=5000000
 DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_0900_ai_ci;
 
+show tables;
+
 INSERT INTO tender (project_id, tender_number, tender_title, tender_description, tender_status_id, estimated_amount, awarded_amount, publication_date, submission_deadline, award_date, contractor_name, contract_start_date, contract_end_date) VALUES
 (4000000, '2026-001', 'School Building Repair', 'Repair structural damage to the school building', 8, 100000.00, 100000.00, '2026-03-01', '2026-03-20', '2026-03-25', 'Shivam constructions', '2026-05-01', '2026-08-15'),
 (4000001, '2026-002', 'Classroom Flooring Repair', 'Repair damaged classroom flooring', 6, 80000.00, 78000.00, '2026-08-15', '2026-08-30', '2026-09-02', 'Shivam constructions', '2026-09-10', '2026-11-15'),
@@ -247,3 +248,144 @@ INSERT INTO tender (project_id, tender_number, tender_title, tender_description,
 (4000003, '2026-004', 'Drinking Water Tank Construction', 'Construction of a new drinking water tank', 6, 200000.00, 195000.00, '2026-08-15', '2026-09-01','2026-09-05', 'Shivam constructions', '2026-10-01', '2026-12-30');
 #---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
 
+#6 inspection
+CREATE TABLE inspection (
+id int NOT NULL AUTO_INCREMENT,
+school_id int NOT NULL,
+inspection_date date NOT NULL,
+inspection_type varchar(50) DEFAULT NULL,
+remarks varchar(100) DEFAULT NULL,
+inspector_name varchar(50) DEFAULT NULL,
+created_on timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+created_by varchar(50) DEFAULT (current_user()),
+updated_on timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+updated_by varchar(50) DEFAULT (current_user()),
+PRIMARY KEY (id),
+KEY idx_inspection_school_id (school_id),
+CONSTRAINT fk_inspection_school FOREIGN KEY (school_id) REFERENCES school (id))
+ENGINE=InnoDB
+AUTO_INCREMENT=6000000
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_0900_ai_ci;
+ 
+ INSERT INTO inspection (school_id, inspection_date, inspection_type, remarks, inspector_name) VALUES
+(1000000, '2026-08-07', 'INFRASTRUCTURE', 'Building condition requires attention and maintenance', 'Mahipal Sharma'),
+(1000001, '2026-08-11', 'GENERAL', 'School infrastructure and facilities found satisfactory', 'Rakesh Kumar');
+
+#---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
+
+#7. source of inforamtion
+#7.1 source_name
+CREATE TABLE source_name (
+id int NOT NULL AUTO_INCREMENT,
+source_name varchar(30) NOT NULL,
+description varchar(100) DEFAULT NULL,
+PRIMARY KEY (id),
+UNIQUE KEY source_name (source_name))
+ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO source_name (id, source_name, description) VALUES
+(1, 'UDISE_PLUS', 'UDISE portal'),
+(2, 'SCHOOL_INSPECTION', 'school inspections'),
+(3, 'NEWSPAPER', 'newspaper reports'),
+(4, 'SCHOOL_RECORD', 'Documents and records maintained by schools'),
+(5, 'OTHER', 'Other information sources');
+
+#7.2 source
+CREATE TABLE source (
+id int NOT NULL AUTO_INCREMENT,
+school_id int NOT NULL,
+source_name_id int NOT NULL,
+source_url varchar(200) DEFAULT NULL,
+publication_date date DEFAULT NULL,
+created_on timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+created_by varchar(50) DEFAULT (current_user()),
+updated_on timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+updated_by varchar(50) DEFAULT (current_user()),
+PRIMARY KEY (id),
+KEY idx_source_school_id (school_id),
+KEY idx_source_name_id (source_name_id),
+CONSTRAINT fk_source_name FOREIGN KEY (source_name_id) REFERENCES source_name (id),
+CONSTRAINT fk_source_school FOREIGN KEY (school_id) REFERENCES school (id))
+ENGINE=InnoDB
+AUTO_INCREMENT=7000000
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO source (school_id, source_name_id, source_url, publication_date) VALUES
+(1000000, 1, 'https://udiseplus.gov.in/#/en/home', '2025-12-01'),
+(1000001, 2, NULL, '2026-10-05');
+
+#---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
+#8 priority_snapshot
+CREATE TABLE priority_snapshot (
+id int NOT NULL AUTO_INCREMENT,
+school_id int NOT NULL,
+snapshot_date date NOT NULL,
+priority_score int DEFAULT NULL COMMENT 'Priority : 1 = LOW, 10 = CRITICAL',
+active_issues int DEFAULT 0,
+under_resol_issues int DEFAULT 0,
+resolved_issues int DEFAULT 0,
+created_on timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+created_by varchar(50) DEFAULT (current_user()),
+updated_on timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+updated_by varchar(50) DEFAULT (current_user()),
+PRIMARY KEY (id),
+KEY idx_priority_school_id (school_id),
+CONSTRAINT fk_priority_school FOREIGN KEY (school_id) REFERENCES school (id))
+ENGINE=InnoDB
+AUTO_INCREMENT=8000000
+DEFAULT CHARSET=utf8mb4 
+COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO priority_snapshot (school_id, snapshot_date, priority_score, active_issues, under_resol_issues, resolved_issues) VALUES
+(1000000, '2026-11-01', 2, 0, 0, 1),
+(1000001, '2026-11-01', 2, 1, 0, 0);
+
+#---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
+
+#9 document and evidence
+#9.1 object category
+CREATE TABLE object_category (
+id int NOT NULL AUTO_INCREMENT,
+object_name varchar(30) NOT NULL,
+description varchar(100) DEFAULT NULL,
+PRIMARY KEY (id),
+UNIQUE KEY object_name (object_name)) 
+ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO object_category (id, object_name, description) VALUES
+(1, 'SCHOOL', 'School information'),
+(2, 'ISSUE', 'issues'),
+(3, 'EVENT', 'events'),
+(4, 'PROJECT', 'repair and construction projects'),
+(5, 'TENDER', 'tender records'),
+(6, 'INSPECTION', 'inspection records');
+
+#9.2 document : contains evidence data
+CREATE TABLE document (
+id int NOT NULL AUTO_INCREMENT,
+object_id int NOT NULL,
+object_category_id int NOT NULL,
+source_id int DEFAULT NULL,
+document_name varchar(50) NOT NULL,
+doc_path varchar(100) DEFAULT NULL,
+description varchar(150) DEFAULT NULL,
+created_on timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+created_by varchar(50) DEFAULT (current_user()),
+updated_on timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+updated_by varchar(50) DEFAULT (current_user()),
+PRIMARY KEY (id),
+KEY idx_document_object (object_category_id,object_id),
+KEY idx_document_source_id (source_id),
+CONSTRAINT fk_document_object_category FOREIGN KEY (object_category_id) REFERENCES object_category (id),
+CONSTRAINT fk_document_source FOREIGN KEY (source_id) REFERENCES source (id))
+ENGINE=InnoDB
+AUTO_INCREMENT=9000000
+DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO document (object_id, object_category_id, source_id, document_name, doc_path, description) VALUES
+(1000000, 1, 7000000, 'School_UDISE_Report.pdf', '/home/School_UDISE_Report.pdf', 'school information obtained from UDISE'),
+(2000000, 2, 7000001, 'Building_Damage_News.pdf', '/home/Building_Damage_News.pdf', 'newspaper report highlighting structural damage to the school building');
+
+#---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---#
