@@ -171,7 +171,7 @@ public class SchoolService{
         issueResponseDto.setFirstDetected(issueEntity.getFirstDetected());
         issueResponseDto.setLastUpdated(issueEntity.getLastUpdated());
         issueResponseDto.setResolvedAt(issueEntity.getResolvedAt());
-        issueResponseDto.setIssueType(issueEntity.getIssueType().getIssue_type());
+        issueResponseDto.setIssueType(issueEntity.getIssueType().getIssueType());
         issueResponseDto.setIssueTypeDescription(issueEntity.getIssueType().getDescription());
         issueResponseDto.setStatus(issueEntity.getIssueStatus().getStatus());
         issueResponseDto.setStatusDescription(issueEntity.getIssueStatus().getDescription());
