@@ -30,7 +30,7 @@ public class IssueType{
         this.id = id;
     }
 
-    public String getIssue_type(){
+    public String getIssueType(){
         return issueType;
     }
 
