@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 
 import com.schoolrde.schoolservice.entity.SchoolEntity;
-import com.schoolrde.schoolservice.entity.SchoolWithIssueEntity;
+import com.schoolrde.schoolservice.entity.SchoolEntireEntity;
 import com.schoolrde.schoolservice.util.JsonUtility;
 
 @Repository
@@ -30,7 +30,7 @@ public class SchoolDaoImpl implements SchoolDao{
     }
     
     @Override
-    public Optional<SchoolWithIssueEntity> findById(Integer id){
+    public Optional<SchoolEntireEntity> findById(Integer id){
     	LOGGER.info("Quering school from database with id : {}", id);
         return schoolRepository.findById(id);
     }

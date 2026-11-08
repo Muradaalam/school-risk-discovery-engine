@@ -16,7 +16,7 @@ public class SourceName{
 	private Integer id;
 	
 	@Column(name = "source_name", nullable = false, length = 30, unique = true)
-	private String source_name;
+	private String sourceName;
 
 	@Column(name = "description", length = 100)
 	private String description;
@@ -30,11 +30,11 @@ public class SourceName{
 	}
 
 	public String getSource_name(){
-		return source_name;
+		return sourceName;
 	}
 
 	public void setSource_name(String source_name){
-		this.source_name = source_name;
+		this.sourceName = sourceName;
 	}
 
 	public String getDescription(){
