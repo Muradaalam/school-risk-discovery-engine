@@ -13,7 +13,7 @@ import com.schoolrde.schoolservice.dto.RequestLoggerDto;
 import com.schoolrde.schoolservice.dto.ResponseLoggerDto;
 import com.schoolrde.schoolservice.dto.SchoolRequestDto;
 import com.schoolrde.schoolservice.dto.SchoolResponseDto;
-import com.schoolrde.schoolservice.dto.SchoolWithIssueResponseDto;
+import com.schoolrde.schoolservice.dto.SchoolEntireResponseDto;
 import com.schoolrde.schoolservice.service.EventService;
 import com.schoolrde.schoolservice.service.SchoolService;
 import com.schoolrde.schoolservice.util.JsonUtility;
@@ -61,7 +61,7 @@ public class SchoolController{
 }
 
     @GetMapping("/getSchool/id")
-    public ResponseEntity<SchoolWithIssueResponseDto> getSchoolById(@RequestParam Integer id, HttpServletRequest request) throws Exception{
+    public ResponseEntity<SchoolEntireResponseDto> getSchoolById(@RequestParam Integer id, HttpServletRequest request) throws Exception{
     	
     	String uri = request.getRequestURI();
     	String method = request.getMethod();
@@ -71,7 +71,7 @@ public class SchoolController{
     	requestLoggerDto.setRequestBody("{\"id\":\"" + id + "\"}");
     	LOGGER.info("Request : {}", JsonUtility.toJson(requestLoggerDto));
 
-    	SchoolWithIssueResponseDto schoolWithIssueResponseDto = schoolService.getSchoolById(id);
+    	SchoolEntireResponseDto schoolWithIssueResponseDto = schoolService.getSchoolById(id);
 
         ResponseLoggerDto responseLoggerDto = new ResponseLoggerDto();
     	responseLoggerDto.setApi(uri);

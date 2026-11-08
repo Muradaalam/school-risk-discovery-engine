@@ -8,16 +8,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.schoolrde.schoolservice.dao.bussiness.SchoolDao;
+import com.schoolrde.schoolservice.dto.EventResponseDto;
+import com.schoolrde.schoolservice.dto.InspectionResponseDto;
 import com.schoolrde.schoolservice.dto.IssueResponseDto;
+import com.schoolrde.schoolservice.dto.PrioritySnapshotResponseDto;
 import com.schoolrde.schoolservice.dto.ProjectResponseDto;
 import com.schoolrde.schoolservice.dto.SchoolRequestDto;
 import com.schoolrde.schoolservice.dto.SchoolResponseDto;
-import com.schoolrde.schoolservice.dto.SchoolWithIssueResponseDto;
+import com.schoolrde.schoolservice.dto.SourceResponseDto;
+import com.schoolrde.schoolservice.dto.SchoolEntireResponseDto;
 import com.schoolrde.schoolservice.dto.TenderResponseDto;
+import com.schoolrde.schoolservice.entity.EventEntity;
+import com.schoolrde.schoolservice.entity.InspectionEntity;
 import com.schoolrde.schoolservice.entity.IssueEntity;
+import com.schoolrde.schoolservice.entity.PrioritySnapshotEntity;
 import com.schoolrde.schoolservice.entity.ProjectEntity;
 import com.schoolrde.schoolservice.entity.SchoolEntity;
-import com.schoolrde.schoolservice.entity.SchoolWithIssueEntity;
+import com.schoolrde.schoolservice.entity.SourceEntity;
+import com.schoolrde.schoolservice.entity.SchoolEntireEntity;
 import com.schoolrde.schoolservice.entity.TenderEntity;
 import com.schoolrde.schoolservice.exception.CustomException;
 
@@ -43,17 +51,17 @@ public class SchoolService{
     }
     
 
-    public SchoolWithIssueResponseDto getSchoolById(int id){
+    public SchoolEntireResponseDto getSchoolById(int id){
     	LOGGER.debug("Fetching school with Id : {}", id);
 
-    	SchoolWithIssueEntity schoolWithIssueEntity=schoolDao.findById(id)
+    	SchoolEntireEntity schoolEntireEntity=schoolDao.findById(id)
                 .orElseThrow(()->{
                 	LOGGER.warn("School not found with Id : {}", id);
                     return new CustomException("E9001");
                 });
 
         LOGGER.info("School retrieved successfully with Id : {}",id);
-        return convertToSchoolWithIssueResponseDto(schoolWithIssueEntity);
+        return convertToSchoolEntireResponseDto(schoolEntireEntity);
     }
     
     public Integer createSchool(SchoolRequestDto schoolRequestDto){
@@ -136,32 +144,75 @@ public class SchoolService{
         return schoolResponseDto;
     }
     
-    private SchoolWithIssueResponseDto convertToSchoolWithIssueResponseDto(SchoolWithIssueEntity schoolWithIssueEntity){
+    private SchoolEntireResponseDto convertToSchoolEntireResponseDto(SchoolEntireEntity schoolEntireEntity){
     	
     	LOGGER.info("Creating SchoolWithIssueResponseDto...");
-        SchoolWithIssueResponseDto schoolWithIssueResponseDto = new SchoolWithIssueResponseDto();
+        SchoolEntireResponseDto schoolWithIssueResponseDto = new SchoolEntireResponseDto();
 
-        schoolWithIssueResponseDto.setId(schoolWithIssueEntity.getId());
-        schoolWithIssueResponseDto.setSchoolId(schoolWithIssueEntity.getSchoolId());
-        schoolWithIssueResponseDto.setUdiseCode(schoolWithIssueEntity.getUdiseCode());
-        schoolWithIssueResponseDto.setSchoolName(schoolWithIssueEntity.getSchoolName());
-        schoolWithIssueResponseDto.setState(schoolWithIssueEntity.getState());
-        schoolWithIssueResponseDto.setDistrict(schoolWithIssueEntity.getDistrict());
-        schoolWithIssueResponseDto.setBlock(schoolWithIssueEntity.getBlock());
-        schoolWithIssueResponseDto.setLatitude(schoolWithIssueEntity.getLatitude());
-        schoolWithIssueResponseDto.setLongitude(schoolWithIssueEntity.getLongitude());
-        schoolWithIssueResponseDto.setSchoolType(schoolWithIssueEntity.getSchoolType());
-        schoolWithIssueResponseDto.setManagementType(schoolWithIssueEntity.getManagementType());
+        schoolWithIssueResponseDto.setId(schoolEntireEntity.getId());
+        schoolWithIssueResponseDto.setSchoolId(schoolEntireEntity.getSchoolId());
+        schoolWithIssueResponseDto.setUdiseCode(schoolEntireEntity.getUdiseCode());
+        schoolWithIssueResponseDto.setSchoolName(schoolEntireEntity.getSchoolName());
+        schoolWithIssueResponseDto.setState(schoolEntireEntity.getState());
+        schoolWithIssueResponseDto.setDistrict(schoolEntireEntity.getDistrict());
+        schoolWithIssueResponseDto.setBlock(schoolEntireEntity.getBlock());
+        schoolWithIssueResponseDto.setLatitude(schoolEntireEntity.getLatitude());
+        schoolWithIssueResponseDto.setLongitude(schoolEntireEntity.getLongitude());
+        schoolWithIssueResponseDto.setSchoolType(schoolEntireEntity.getSchoolType());
+        schoolWithIssueResponseDto.setManagementType(schoolEntireEntity.getManagementType());
 
-        List<IssueResponseDto> issues = schoolWithIssueEntity.getIssues()
+/*        List<PrioritySnapshotResponseDto> prioritySnapshots = schoolEntireEntity.getPrioritySnapshots()
+                .stream().map(this::convertToPrioritySnapshotResponseDto)
+                .collect(Collectors.toList());
+
+        schoolWithIssueResponseDto.setPrioritySnapshots(prioritySnapshots);
+*/
+        List<IssueResponseDto> issues = schoolEntireEntity.getIssues()
                 .stream().map(this::convertToIssueResponseDto)
                 .collect(Collectors.toList());
 
         schoolWithIssueResponseDto.setIssues(issues);
 
+        List<InspectionResponseDto> inspections = schoolEntireEntity.getInspections()
+                .stream().map(this::convertToInspectionResponseDto)
+                .collect(Collectors.toList());
+
+        schoolWithIssueResponseDto.setInspections(inspections);
+
+        List<SourceResponseDto> sources = schoolEntireEntity.getSources()
+                .stream().map(this::convertToSourceResponseDto)
+                .collect(Collectors.toList());
+
+        schoolWithIssueResponseDto.setSources(sources);
+
+        List<EventResponseDto> events = schoolEntireEntity.getEvents()
+                .stream().map(this::convertToEventResponseDto)
+                .collect(Collectors.toList());
+
+        schoolWithIssueResponseDto.setEvents(events);
+
+          
         return schoolWithIssueResponseDto;
     }
 
+    
+    private PrioritySnapshotResponseDto convertToPrioritySnapshotResponseDto(PrioritySnapshotEntity prioritySnapshotEntity){
+
+        LOGGER.info("Creating PrioritySnapshotResponseDto...");
+
+        PrioritySnapshotResponseDto prioritySnapshotResponseDto = new PrioritySnapshotResponseDto();
+
+        prioritySnapshotResponseDto.setId(prioritySnapshotEntity.getId());
+        prioritySnapshotResponseDto.setSnapshotDate(prioritySnapshotEntity.getSnapshotDate());
+        prioritySnapshotResponseDto.setPriorityScore(prioritySnapshotEntity.getPriority_score());
+        prioritySnapshotResponseDto.setActiveIssues(prioritySnapshotEntity.getActiveIssues());
+        prioritySnapshotResponseDto.setUnderResolutionIssues(prioritySnapshotEntity.getUnderResolutionIssues());
+        prioritySnapshotResponseDto.setResolvedIssues(prioritySnapshotEntity.getResolvedIssues());
+
+        return prioritySnapshotResponseDto;
+
+    }
+    
     private IssueResponseDto convertToIssueResponseDto(IssueEntity issueEntity) {
 
     	LOGGER.info("Creating IssueResponseDto...");
@@ -175,12 +226,13 @@ public class SchoolService{
         issueResponseDto.setIssueTypeDescription(issueEntity.getIssueType().getDescription());
         issueResponseDto.setStatus(issueEntity.getIssueStatus().getStatus());
         issueResponseDto.setStatusDescription(issueEntity.getIssueStatus().getDescription());
-
+        
         List<ProjectResponseDto> projects = issueEntity.getProjects()
                 .stream().map(this::convertToProjectResponseDto)
                 .collect(Collectors.toList());
 
         issueResponseDto.setProjects(projects);
+
         return issueResponseDto;
     }
     
@@ -199,12 +251,13 @@ public class SchoolService{
         projectResponseDto.setStartDate(projectEntity.getStartDate());
         projectResponseDto.setExpectedCompletionDate(projectEntity.getExpectedCompletionDate());
         projectResponseDto.setActualCompletionDate(projectEntity.getActualCompletionDate());
-        projectResponseDto.setRemarks(projectEntity.getRemarks());
+        projectResponseDto.setRemarks(projectEntity.getRemarks());  
+        
         List<TenderResponseDto> tenders = projectEntity.getTenders()
                 .stream().map(this::convertToTenderResponseDto)
                 .collect(Collectors.toList());
 
-        projectResponseDto.setTenders(tenders);        
+        projectResponseDto.setTenders(tenders);
 
         return projectResponseDto;
     }
@@ -231,6 +284,51 @@ public class SchoolService{
         tenderResponseDto.setContractEndDate(tenderEntity.getContractEndDate());
 
         return tenderResponseDto;
+    }
+    
+    private InspectionResponseDto convertToInspectionResponseDto(InspectionEntity inspectionEntity){
+
+        LOGGER.info("Creating InspectionResponseDto...");
+
+        InspectionResponseDto inspectionResponseDto = new InspectionResponseDto();
+
+        inspectionResponseDto.setId(inspectionEntity.getId());
+        inspectionResponseDto.setInspectionDate(inspectionEntity.getInspectionDate());
+        inspectionResponseDto.setInspectionType(inspectionEntity.getInspectionType());
+        inspectionResponseDto.setRemarks(inspectionEntity.getRemarks());
+        inspectionResponseDto.setInspectorName(inspectionEntity.getInspectorName());
+
+        return inspectionResponseDto;
+
+    }
+    
+    private SourceResponseDto convertToSourceResponseDto(SourceEntity sourceEntity){
+
+        LOGGER.info("Creating SourceResponseDto...");
+
+        SourceResponseDto sourceResponseDto = new SourceResponseDto();
+
+        sourceResponseDto.setId(sourceEntity.getId());
+        sourceResponseDto.setSourceUrl(sourceEntity.getSourceUrl());
+        sourceResponseDto.setPublicationDate(sourceEntity.getPublicationDate());
+
+        return sourceResponseDto;
+
+    }
+    
+    private EventResponseDto convertToEventResponseDto(EventEntity eventEntity){
+
+        LOGGER.info("Creating EventResponseDto...");
+
+        EventResponseDto eventResponseDto = new EventResponseDto();
+
+        eventResponseDto.setId(eventEntity.getId());
+        eventResponseDto.setDetailedDescription(eventEntity.getDetailedDescription());
+        eventResponseDto.setEventDate(eventEntity.getEventDate());
+        eventResponseDto.setLocation(eventEntity.getLocation());
+
+        return eventResponseDto;
+
     }
     
 }
