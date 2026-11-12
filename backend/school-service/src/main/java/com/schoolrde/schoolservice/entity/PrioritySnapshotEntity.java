@@ -25,7 +25,7 @@ public class PrioritySnapshotEntity{
 	private Date snapshotDate;
 
 	@Column(name = "priority_score")
-	private Integer priority_score;
+	private Integer priorityScore;
 	
 	@Column(name = "active_issues")
 	private Integer activeIssues;
@@ -72,12 +72,12 @@ public class PrioritySnapshotEntity{
 		this.snapshotDate = snapshotDate;
 	}
 
-	public Integer getPriority_score(){
-		return priority_score;
+	public Integer getPriorityScore(){
+		return priorityScore;
 	}
 
-	public void setPriority_score(Integer priority_score){
-		this.priority_score = priority_score;
+	public void setPriorityScore(Integer priorityScore){
+		this.priorityScore = priorityScore;
 	}
 
 	public Integer getActiveIssues(){

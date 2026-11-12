@@ -146,53 +146,53 @@ public class SchoolService{
     
     private SchoolEntireResponseDto convertToSchoolEntireResponseDto(SchoolEntireEntity schoolEntireEntity){
     	
-    	LOGGER.info("Creating SchoolWithIssueResponseDto...");
-        SchoolEntireResponseDto schoolWithIssueResponseDto = new SchoolEntireResponseDto();
+    	LOGGER.info("Creating schoolEntireResponseDto...");
+        SchoolEntireResponseDto schoolEntireResponseDto = new SchoolEntireResponseDto();
 
-        schoolWithIssueResponseDto.setId(schoolEntireEntity.getId());
-        schoolWithIssueResponseDto.setSchoolId(schoolEntireEntity.getSchoolId());
-        schoolWithIssueResponseDto.setUdiseCode(schoolEntireEntity.getUdiseCode());
-        schoolWithIssueResponseDto.setSchoolName(schoolEntireEntity.getSchoolName());
-        schoolWithIssueResponseDto.setState(schoolEntireEntity.getState());
-        schoolWithIssueResponseDto.setDistrict(schoolEntireEntity.getDistrict());
-        schoolWithIssueResponseDto.setBlock(schoolEntireEntity.getBlock());
-        schoolWithIssueResponseDto.setLatitude(schoolEntireEntity.getLatitude());
-        schoolWithIssueResponseDto.setLongitude(schoolEntireEntity.getLongitude());
-        schoolWithIssueResponseDto.setSchoolType(schoolEntireEntity.getSchoolType());
-        schoolWithIssueResponseDto.setManagementType(schoolEntireEntity.getManagementType());
+        schoolEntireResponseDto.setId(schoolEntireEntity.getId());
+        schoolEntireResponseDto.setSchoolId(schoolEntireEntity.getSchoolId());
+        schoolEntireResponseDto.setUdiseCode(schoolEntireEntity.getUdiseCode());
+        schoolEntireResponseDto.setSchoolName(schoolEntireEntity.getSchoolName());
+        schoolEntireResponseDto.setState(schoolEntireEntity.getState());
+        schoolEntireResponseDto.setDistrict(schoolEntireEntity.getDistrict());
+        schoolEntireResponseDto.setBlock(schoolEntireEntity.getBlock());
+        schoolEntireResponseDto.setLatitude(schoolEntireEntity.getLatitude());
+        schoolEntireResponseDto.setLongitude(schoolEntireEntity.getLongitude());
+        schoolEntireResponseDto.setSchoolType(schoolEntireEntity.getSchoolType());
+        schoolEntireResponseDto.setManagementType(schoolEntireEntity.getManagementType());
 
-/*        List<PrioritySnapshotResponseDto> prioritySnapshots = schoolEntireEntity.getPrioritySnapshots()
+        List<PrioritySnapshotResponseDto> prioritySnapshots = schoolEntireEntity.getPrioritySnapshots()
                 .stream().map(this::convertToPrioritySnapshotResponseDto)
                 .collect(Collectors.toList());
 
-        schoolWithIssueResponseDto.setPrioritySnapshots(prioritySnapshots);
-*/
+        schoolEntireResponseDto.setPrioritySnapshots(prioritySnapshots);
+
         List<IssueResponseDto> issues = schoolEntireEntity.getIssues()
                 .stream().map(this::convertToIssueResponseDto)
                 .collect(Collectors.toList());
 
-        schoolWithIssueResponseDto.setIssues(issues);
+        schoolEntireResponseDto.setIssues(issues);
 
         List<InspectionResponseDto> inspections = schoolEntireEntity.getInspections()
                 .stream().map(this::convertToInspectionResponseDto)
                 .collect(Collectors.toList());
 
-        schoolWithIssueResponseDto.setInspections(inspections);
+        schoolEntireResponseDto.setInspections(inspections);
 
         List<SourceResponseDto> sources = schoolEntireEntity.getSources()
                 .stream().map(this::convertToSourceResponseDto)
                 .collect(Collectors.toList());
 
-        schoolWithIssueResponseDto.setSources(sources);
+        schoolEntireResponseDto.setSources(sources);
 
         List<EventResponseDto> events = schoolEntireEntity.getEvents()
                 .stream().map(this::convertToEventResponseDto)
                 .collect(Collectors.toList());
 
-        schoolWithIssueResponseDto.setEvents(events);
+        schoolEntireResponseDto.setEvents(events);
 
           
-        return schoolWithIssueResponseDto;
+        return schoolEntireResponseDto;
     }
 
     
@@ -204,7 +204,7 @@ public class SchoolService{
 
         prioritySnapshotResponseDto.setId(prioritySnapshotEntity.getId());
         prioritySnapshotResponseDto.setSnapshotDate(prioritySnapshotEntity.getSnapshotDate());
-        prioritySnapshotResponseDto.setPriorityScore(prioritySnapshotEntity.getPriority_score());
+        prioritySnapshotResponseDto.setPriorityScore(prioritySnapshotEntity.getPriorityScore());
         prioritySnapshotResponseDto.setActiveIssues(prioritySnapshotEntity.getActiveIssues());
         prioritySnapshotResponseDto.setUnderResolutionIssues(prioritySnapshotEntity.getUnderResolutionIssues());
         prioritySnapshotResponseDto.setResolvedIssues(prioritySnapshotEntity.getResolvedIssues());
@@ -309,6 +309,7 @@ public class SchoolService{
         SourceResponseDto sourceResponseDto = new SourceResponseDto();
 
         sourceResponseDto.setId(sourceEntity.getId());
+        sourceResponseDto.setSourceName(sourceEntity.getSourceName().getSourceName());
         sourceResponseDto.setSourceUrl(sourceEntity.getSourceUrl());
         sourceResponseDto.setPublicationDate(sourceEntity.getPublicationDate());
 
@@ -323,6 +324,7 @@ public class SchoolService{
         EventResponseDto eventResponseDto = new EventResponseDto();
 
         eventResponseDto.setId(eventEntity.getId());
+        eventResponseDto.setEventType(eventEntity.getEventType().getEventType());
         eventResponseDto.setDetailedDescription(eventEntity.getDetailedDescription());
         eventResponseDto.setEventDate(eventEntity.getEventDate());
         eventResponseDto.setLocation(eventEntity.getLocation());

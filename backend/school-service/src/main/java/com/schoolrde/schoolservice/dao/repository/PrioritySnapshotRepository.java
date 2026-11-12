@@ -9,4 +9,7 @@ import com.schoolrde.schoolservice.entity.PrioritySnapshotEntity;
 public interface PrioritySnapshotRepository extends JpaRepository<PrioritySnapshotEntity,Integer>{
 	
 	Optional<PrioritySnapshotEntity> findById(Integer Id);
+	
+    Optional<PrioritySnapshotEntity> findBySchoolId(Integer schoolId);
+
 }
