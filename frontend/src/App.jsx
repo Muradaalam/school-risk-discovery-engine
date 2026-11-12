@@ -4,15 +4,41 @@ import Sidebar from './components/Sidebar'
 import Navbar from './components/Navbar'
 import Dashboard from './pages/Dashboard'
 import Schools from './pages/Schools'
+import SchoolDetails from './pages/SchoolDetails'
 import './App.css'
 
 function App() {
   const [activePage, setActivePage] = useState('Dashboard')
+  const [selectedSchool, setSelectedSchool] = useState(null)
+
+  function handlePageChange(page) {
+    setActivePage(page)
+    setSelectedSchool(null)
+  }
+
+  function handleSchoolSelect(school) {
+    setSelectedSchool(school)
+    setActivePage('SchoolDetails')
+  }
+
+  function handleBackToSchools() {
+    setSelectedSchool(null)
+    setActivePage('Schools')
+  }
 
   function renderPage() {
     switch (activePage) {
       case 'Schools':
-        return <Schools />
+        return <Schools onSchoolSelect={handleSchoolSelect} />
+
+      case 'SchoolDetails':
+        return (
+          <SchoolDetails
+            school={selectedSchool}
+            onBack={handleBackToSchools}
+          />
+        )
+
       case 'Dashboard':
       default:
         return <Dashboard />
@@ -22,8 +48,12 @@ function App() {
   return (
     <div className="app-layout">
       <Sidebar
-        activePage={activePage}
-        onPageChange={setActivePage}
+        activePage={
+          activePage === 'SchoolDetails'
+            ? 'Schools'
+            : activePage
+        }
+        onPageChange={handlePageChange}
       />
 
       <div className="main-area">

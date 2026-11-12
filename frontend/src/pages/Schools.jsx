@@ -6,42 +6,14 @@ import { Search, Filter } from 'lucide-react'
 // Temporary demonstration data.
 // Replace with actual backend data later.
 const schools = [
-  {
-    id: 1,
-    name: 'Demo Government School A',
-    udise: 'DEMO-001',
-    district: 'Jaipur',
-    evidenceCount: 5,
-    priority: 'High',
-  },
-  {
-    id: 2,
-    name: 'Demo Government School B',
-    udise: 'DEMO-002',
-    district: 'Ajmer',
-    evidenceCount: 3,
-    priority: 'Medium',
-  },
-  {
-    id: 3,
-    name: 'Demo Government School C',
-    udise: 'DEMO-003',
-    district: 'Udaipur',
-    evidenceCount: 2,
-    priority: 'Low',
-  },
-  {
-    id: 4,
-    name: 'Demo Government School D',
-    udise: 'DEMO-004',
-    district: 'Jodhpur',
-    evidenceCount: 0,
-    priority: 'Not Assessed',
-  },
+  { id: 1, name: 'Demo Government School A', udise: 'DEMO-001', district: 'Jaipur', evidenceCount: 2, priority: 'High' },
+  { id: 2, name: 'Demo Government School B', udise: 'DEMO-002', district: 'Ajmer', evidenceCount: 1, priority: 'Medium' },
+  { id: 3, name: 'Demo Government School C', udise: 'DEMO-003', district: 'Udaipur', evidenceCount: 1, priority: 'Low' },
+  { id: 4, name: 'Demo Government School D', udise: 'DEMO-004', district: 'Jodhpur', evidenceCount: 0, priority: 'Not Assessed' },
 ]
 
 
-function Schools() {
+function Schools({ onSchoolSelect }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('All')
 
@@ -116,7 +88,17 @@ function Schools() {
 
             <tbody>
               {filteredSchools.map((school) => (
-                <tr key={school.id}>
+                <tr key={school.id}
+                 className="clickable-school-row"
+                 onClick={() => onSchoolSelect(school)}
+                 tabIndex={0}
+                 role="button"
+                 onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    onSchoolSelect(school)
+                  }
+                }}>
                   <td className="school-name">{school.name}</td>
                   <td>{school.udise}</td>
                   <td>{school.district}</td>
