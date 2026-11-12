@@ -2,7 +2,6 @@ package com.schoolrde.schoolservice.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -26,11 +25,14 @@ public class SchoolController{
     
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchoolController.class);
     
-	@Autowired
-	SchoolService schoolService;
+	final SchoolService schoolService;
 
-	@Autowired
-	EventService eventService;
+	final EventService eventService;
+
+    SchoolController(SchoolService schoolService, EventService eventService){
+        this.schoolService = schoolService;
+        this.eventService = eventService;
+    }
 
 	@GetMapping("/csrf-token")
 	public CsrfToken getCsrfToken(CsrfToken csrfToken){

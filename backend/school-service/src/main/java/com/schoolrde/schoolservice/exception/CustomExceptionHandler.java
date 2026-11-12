@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,6 +58,14 @@ public class CustomExceptionHandler{
         }
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleNoResourceFoundException(NoResourceFoundException ex) {
+        LOGGER.warn("Requested api is not found: {}", ex.getResourcePath());
+        ErrorResponseDto response = new ErrorResponseDto("E404", "Oh... o requested API endpoint is not found");
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleException(Exception ex){
     	LOGGER.error("Error : Unexpected exception occurred", ex);

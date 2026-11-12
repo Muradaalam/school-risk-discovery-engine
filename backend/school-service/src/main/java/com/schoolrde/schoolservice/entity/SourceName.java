@@ -29,11 +29,11 @@ public class SourceName{
 		this.id = id;
 	}
 
-	public String getSource_name(){
+	public String getSourceName(){
 		return sourceName;
 	}
 
-	public void setSource_name(String source_name){
+	public void setSourceName(String sourceName){
 		this.sourceName = sourceName;
 	}
 
