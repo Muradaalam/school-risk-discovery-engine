@@ -26,7 +26,7 @@ function Sidebar({ activePage, onPageChange }) {
                key={item.name}
                className={`sidebar-link ${activePage === item.name ? 'active' : ''}`}
                onClick={() => onPageChange(item.name)}
-               disabled={!['Dashboard', 'Schools'].includes(item.name)}
+               disabled={!['Dashboard', 'Schools', 'Map'].includes(item.name)}
           >
             {item.icon.startsWith('/') ? (
       <img src={item.icon} alt="" className="menu-icon-img" />

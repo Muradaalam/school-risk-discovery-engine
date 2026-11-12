@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Schools from './pages/Schools'
 import SchoolDetails from './pages/SchoolDetails'
 import './App.css'
+import Map from './pages/Map'
 
 function App() {
   const [activePage, setActivePage] = useState('Dashboard')
@@ -38,10 +39,12 @@ function App() {
             onBack={handleBackToSchools}
           />
         )
-
+      case 'Map':
+        return <Map />
       case 'Dashboard':
       default:
         return <Dashboard />
+      
     }
   }
 
