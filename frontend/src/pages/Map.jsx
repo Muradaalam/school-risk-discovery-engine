@@ -8,46 +8,14 @@ import {
   Popup,
 } from 'react-leaflet'
 
+import {
+  demoSchools,
+  priorityColors,
+} from '../data/demoSchools'
+
 import 'leaflet/dist/leaflet.css'
 import './Map.css'
 
-const demoSchools = [
-  {
-    id: 1,
-    name: 'Demo Government School A',
-    district: 'Jaipur',
-    position: [26.9124, 75.7873],
-    priority: 'High',
-  },
-  {
-    id: 2,
-    name: 'Demo Government School B',
-    district: 'Ajmer',
-    position: [26.4499, 74.6399],
-    priority: 'Medium',
-  },
-  {
-    id: 3,
-    name: 'Demo Government School C',
-    district: 'Udaipur',
-    position: [24.5854, 73.7125],
-    priority: 'Low',
-  },
-  {
-    id: 4,
-    name: 'Demo Government School D',
-    district: 'Jodhpur',
-    position: [26.2389, 73.0243],
-    priority: 'Not Assessed',
-  },
-]
-
-const priorityColors = {
-  High: '#dc2626',
-  Medium: '#f59e0b',
-  Low: '#16a34a',
-  'Not Assessed': '#64748b',
-}
 
 function Map() {
   const [priorityFilter, setPriorityFilter] = useState('All')

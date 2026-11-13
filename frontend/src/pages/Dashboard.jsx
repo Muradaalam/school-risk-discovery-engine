@@ -7,32 +7,33 @@ import {
 } from 'lucide-react'
 
 import './Dashboard.css'
+import { demoSchools } from '../data/demoSchools'
 
 const stats = [
   {
     title: 'Total Schools',
-    value: '—',
+    value: demoSchools.length,
     description: 'Schools in the database',
     icon: School,
     color: 'blue',
   },
   {
     title: 'High Priority',
-    value: '—',
+    value: demoSchools.filter((school) => school.priority === 'High').length,
     description: 'Priority for inspection',
     icon: TriangleAlert,
     color: 'red',
   },
   {
     title: 'Medium Priority',
-    value: '—',
+    value: demoSchools.filter((school) => school.priority === 'Medium').length,
     description: 'Priority for inspection',
     icon: CircleAlert,
     color: 'orange',
   },
   {
     title: 'Low Priority',
-    value: '—',
+    value: 	demoSchools.filter((school) => school.priority === 'Low').length,
     description: 'Priority for inspection',
     icon: CircleCheck,
     color: 'green',
@@ -45,6 +46,9 @@ function Dashboard() {
       <div className="dashboard-heading">
         <h1>Dashboard Overview</h1>
         <p>School Evidence & Inspection Priority System</p>
+        <p className="dashboard-demo-note">
+          Statistics are based on demonstration data.
+        </p>
       </div>
 
       <div className="stats-grid">

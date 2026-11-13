@@ -3,21 +3,18 @@ import './Schools.css'
 
 import { useState } from 'react'
 import { Search, Filter } from 'lucide-react'
+import { demoSchools } from '../data/demoSchools'
+
 // Temporary demonstration data.
 // Replace with actual backend data later.
-const schools = [
-  { id: 1, name: 'Demo Government School A', udise: 'DEMO-001', district: 'Jaipur', evidenceCount: 2, priority: 'High' },
-  { id: 2, name: 'Demo Government School B', udise: 'DEMO-002', district: 'Ajmer', evidenceCount: 1, priority: 'Medium' },
-  { id: 3, name: 'Demo Government School C', udise: 'DEMO-003', district: 'Udaipur', evidenceCount: 1, priority: 'Low' },
-  { id: 4, name: 'Demo Government School D', udise: 'DEMO-004', district: 'Jodhpur', evidenceCount: 0, priority: 'Not Assessed' },
-]
+
 
 
 function Schools({ onSchoolSelect }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('All')
 
-  const filteredSchools = schools.filter((school) => {
+  const filteredSchools = demoSchools.filter((school) => {
     const search = searchTerm.toLowerCase().trim()
 
     const matchesSearch =
@@ -127,7 +124,7 @@ function Schools({ onSchoolSelect }) {
         </div>
 
         <p className="schools-result-count">
-          Showing {filteredSchools.length} of {schools.length} schools
+          Showing {filteredSchools.length} of {demoSchools.length} schools
         </p>
       </div>
     </div>
