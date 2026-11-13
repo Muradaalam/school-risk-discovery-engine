@@ -1,4 +1,4 @@
- # note:  this code is written using AI
+# This code is AI generated
 
 import argparse
 import hashlib
@@ -13,256 +13,237 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 
+HOSTS = {"AKASHVANI": "newsonair.gov.in", "PIB": "pib.gov.in"}
 FEEDS = {
     "AKASHVANI": "https://newsonair.gov.in/hi/rss-feeds/",
-    "PIB": "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=1",
+    "PIB": "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=1"
 }
-
 SEED_URLS = {
     "AKASHVANI": "https://newsonair.gov.in/school-tragedy-in-rajasthan-building-collapse-in-jhalawar-leaves-5-dead-20-injured/",
     "PIB": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2148897&lang=2&reg=48"
 }
-
-HOSTS = {
-    "AKASHVANI": "newsonair.gov.in",
-    "PIB": "pib.gov.in",
-}
-
-SCHOOL_TERMS = ("school", "विद्यालय", "स्कूल", "विद्यालयों", "शाळा")
-
+SCHOOL_TERMS = ("school", "विद्यालय", "स्कूल")
 ISSUE_TERMS = (
-    "collapse", "collapsed", "roof", "ceiling", "dilapidated",
-    "unsafe", "repair", "crack", "damaged", "building", "wall",
-    "injur", "construction", "demolish", "जर्जर", "छत",
-    "गिर", "मरम्मत", "भवन", "दीवार", "घायल", "ढह"
+    "collapse", "roof", "ceiling", "dilapidated", "unsafe", "repair",
+    "crack", "damaged", "building", "wall", "injur", "construction",
+    "जर्जर", "छत", "गिर", "मरम्मत", "भवन", "दीवार", "घायल", "ढह"
 )
 
 
-def allowed_url(url: str, source: str) -> bool:
+def source_for_url(url):
     parsed = urlparse(url)
-    host = (parsed.hostname or "").lower()
-    domain = HOSTS[source]
-    return parsed.scheme == "https" and host in (domain, f"www.{domain}")
-
-
-def relevant(text: str) -> bool:
-    text = text.casefold()
-    return (any(word in text for word in SCHOOL_TERMS)
-            and any(word in text for word in ISSUE_TERMS))
-
-
-def iso_date(value: str) -> str:
-    if not value:
+    host = (parsed.hostname or "").casefold()
+    if parsed.scheme != "https":
         return ""
+    for source, domain in HOSTS.items():
+        if host == domain or host == f"www.{domain}":
+            return source
+    return ""
 
+
+def allowed_url(url, source):
+    return source_for_url(url) == source
+
+
+def relevant(text):
+    text = (text or "").casefold()
+    return any(t in text for t in SCHOOL_TERMS) and any(t in text for t in ISSUE_TERMS)
+
+
+def iso_date(text):
+    if not text:
+        return ""
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00")).date().isoformat()
+        return datetime.fromisoformat(text.replace("Z", "+00:00")).date().isoformat()
     except ValueError:
         try:
-            return parsedate_to_datetime(value).date().isoformat()
+            return parsedate_to_datetime(text).date().isoformat()
         except (ValueError, TypeError, IndexError):
-            return ""
+            pass
+    for fmt in ("%B %d, %Y", "%b %d, %Y", "%d %B %Y", "%d %b %Y"):
+        match = re.search(
+            r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December|"
+            r"Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4}\b|"
+            r"\b\d{1,2}\s+[A-Za-z]+\s+\d{4}\b", text, flags=re.I
+        )
+        if match:
+            try:
+                return datetime.strptime(match.group(0), fmt).date().isoformat()
+            except ValueError:
+                continue
+    return ""
 
 
-def feed_entries(xml: str, source: str) -> list[dict]:
+def feed_entries(xml, source):
     soup = BeautifulSoup(xml, "xml")
-    output = []
-
-    for item in soup.select("item"):
+    if not soup.find("rss") and not soup.find("feed"):
+        raise ValueError("Endpoint returned a page, not RSS/Atom XML")
+    entries = []
+    for item in soup.find_all(["item", "entry"]):
         link = item.find("link")
-        title = item.find("title")
-        description = item.find("description")
-        date = item.find("pubDate")
-        url = link.get_text(strip=True) if link else ""
-
+        url = link.get("href", "") if link and link.get("href") else (
+            link.get_text(strip=True) if link else ""
+        )
         if not allowed_url(url, source):
             continue
-
-        summary = ""
-        if description:
-            summary = BeautifulSoup(
-                description.get_text(" ", strip=True), "html.parser"
-            ).get_text(" ", strip=True)
-
-        output.append({
+        title = item.find("title")
+        summary = item.find("description") or item.find("summary")
+        date = item.find("pubDate") or item.find("published") or item.find("updated")
+        summary_text = BeautifulSoup(summary.get_text(" ", strip=True), "html.parser").get_text(" ", strip=True) if summary else ""
+        entries.append({
             "url": url,
             "title": title.get_text(" ", strip=True) if title else "",
-            "summary": summary,
+            "summary": summary_text,
             "published_date": iso_date(date.get_text(strip=True)) if date else ""
         })
+    return entries
 
-    return output
 
-
-def article_details(html: str) -> dict:
+def article_details(html):
     soup = BeautifulSoup(html, "html.parser")
-    title_tag = soup.find("h1")
-    meta_title = soup.find("meta", property="og:title")
+    for tag in soup(["script", "style", "noscript"]):
+        tag.decompose()
 
-    title = title_tag.get_text(" ", strip=True) if title_tag else (
-        meta_title.get("content", "") if meta_title else ""
-    )
+    title = ""
+    for attrs in ({"property": "og:title"}, {"name": "twitter:title"}):
+        tag = soup.find("meta", attrs=attrs)
+        if tag and tag.get("content", "").strip():
+            title = tag["content"].strip()
+            break
+    if not title:
+        heading = soup.find("h1") or soup.find("title")
+        title = heading.get_text(" ", strip=True) if heading else ""
 
     published = ""
     for attrs in (
-        {"property": "article:published_time"},
-        {"itemprop": "datePublished"},
-        {"name": "date"}
+        {"property": "article:published_time"}, {"itemprop": "datePublished"},
+        {"name": "date"}, {"name": "pubdate"}, {"name": "publish-date"}
     ):
         tag = soup.find("meta", attrs=attrs)
         if tag:
             published = iso_date(tag.get("content", ""))
             if published:
                 break
-
     if not published:
         tag = soup.find("time", datetime=True)
-        published = iso_date(tag.get("datetime", "")) if tag else ""
+        if tag:
+            published = iso_date(tag.get("datetime", ""))
+    if not published:
+        published = iso_date(soup.get_text(" ", strip=True)[:800])
 
-    body = None
-    for selector in (
-        "article", "[itemprop='articleBody']", ".entry-content",
-        ".article-body", ".td-post-content", "main"
-    ):
-        body = soup.select_one(selector)
-        if body:
-            break
-
+    body = next((soup.select_one(selector) for selector in (
+        "article", "[itemprop='articleBody']", ".entry-content", ".article-body",
+        ".td-post-content", "main"
+    ) if soup.select_one(selector)), None)
     paragraphs = body.find_all("p") if body else soup.find_all("p")
-    content = " ".join(p.get_text(" ", strip=True) for p in paragraphs)
-    content = re.sub(r"\s+", " ", content).strip()
-
-    return {
-        "title": title,
-        "published_date": published,
-        "excerpt": content[:320]
-    }
+    content = re.sub(r"\s+", " ", " ".join(p.get_text(" ", strip=True) for p in paragraphs)).strip()
+    if not content and body:
+        content = body.get_text(" ", strip=True)
+    if not title and content:
+        title = content[:110]
+    return {"title": title, "published_date": published, "excerpt": content[:500]}
 
 
-def collect(output_path: str | Path, max_items: int = 40,
-            include_seed: bool = False, session=None) -> dict:
+def collect(output_path, max_items=40, include_seed=False, session=None,
+            skip_feeds=False, urls_file=None):
     if max_items < 1:
         raise ValueError("max_items must be positive")
-
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
 
     seen = set()
-    if output_path.exists():
-        with output_path.open(encoding="utf-8") as file:
+    if path.exists():
+        with path.open(encoding="utf-8") as file:
             for line in file:
                 if line.strip():
                     seen.add(json.loads(line)["url"])
 
     client = session if session is not None else requests.Session()
     if session is None:
-        client.headers.update({
-            "User-Agent": "SRDE-AcademicResearch/0.1 (public-report-review)"
-        })
+        client.headers.update({"User-Agent": "SRDE-AcademicPrototype/0.1 (public-source article review)"})
 
-    sources = ["AKASHVANI", "PIB"]
+    result = {"new_reports": 0, "already_seen": 0, "skipped_irrelevant": 0,
+              "article_errors": 0, "feed_errors": {}, "unsupported_urls": 0,
+              "output": str(path)}
+    candidates = []
 
-    result = {
-        "discovered": 0,
-        "new_reports": 0,
-        "already_seen": 0,
-        "feed_errors": {},
-        "article_errors": 0,
-        "output": str(output_path)
-    }
+    if urls_file:
+        for line in Path(urls_file).read_text(encoding="utf-8").splitlines():
+            url = line.strip()
+            if url and not url.startswith("#"):
+                if source_for_url(url):
+                    candidates.append({"url": url, "title": "", "summary": "", "published_date": ""})
+                else:
+                    result["unsupported_urls"] += 1
 
-    with output_path.open("a", encoding="utf-8") as file:
-        for source in sources:
-            candidates = []
+    if include_seed:
+        candidates.extend({"url": url, "title": "", "summary": "", "published_date": ""}
+                          for url in SEED_URLS.values())
 
+    if not skip_feeds:
+        for source, feed in FEEDS.items():
             try:
-                response = client.get(FEEDS[source], timeout=20)
+                response = client.get(feed, timeout=12)
                 response.raise_for_status()
-
                 if not allowed_url(response.url, source):
-                    raise ValueError("Feed redirected outside the approved host")
-
-                candidates = feed_entries(response.text, source)[:max_items]
-
+                    raise ValueError("Feed redirected off-site")
+                entries = feed_entries(response.text, source)
+                candidates.extend(e for e in entries[:max_items]
+                                  if relevant(e["title"] + " " + e["summary"]))
             except (requests.RequestException, ValueError) as error:
                 result["feed_errors"][source] = str(error)[:180]
 
-            if include_seed and source in SEED_URLS:
-                candidates.insert(0, {
-                    "url": SEED_URLS[source],
-                    "title": "",
-                    "summary": "",
-                    "published_date": ""
-                })
-
-            for entry in candidates:
-                url = entry["url"]
-
-                if not allowed_url(url, source):
-                    continue
-
-                is_seed = include_seed and url == SEED_URLS.get(source)
-
-                if not is_seed and not relevant(entry["title"] + " " + entry["summary"]):
-                    continue
-
-                result["discovered"] += 1
-
-                if url in seen:
-                    result["already_seen"] += 1
-                    continue
-
-                try:
-                    response = client.get(url, timeout=20)
-                    response.raise_for_status()
-
-                    if not allowed_url(response.url, source):
-                        raise ValueError("Article redirected outside the approved host")
-
-                    details = article_details(response.text)
-
-                except (requests.RequestException, ValueError):
-                    result["article_errors"] += 1
-                    continue
-
-                title = details["title"] or entry["title"]
-
-                if not relevant(title + " " + details["excerpt"] + " " + entry["summary"]):
-                    continue
-
-                record = {
-                    "report_id": "WEB:" + hashlib.sha256(url.encode()).hexdigest()[:16],
-                    "source": source,
-                    "url": url,
-                    "title": title,
-                    "published_date": details["published_date"] or entry["published_date"],
-                    "excerpt": details["excerpt"],
-                    "retrieved_at": datetime.now(timezone.utc).isoformat(),
-                    "review_status": "NEEDS_SCHOOL_IDENTITY_AND_CLAIM_REVIEW"
-                }
-
-                file.write(json.dumps(record, ensure_ascii=False) + "\n")
-                file.flush()
-                seen.add(url)
-                result["new_reports"] += 1
-
-                if session is None:
-                    time.sleep(1)
-
+    attempted = set()
+    with path.open("a", encoding="utf-8") as file:
+        for entry in candidates:
+            url = entry["url"]
+            source = source_for_url(url)
+            if not source or url in attempted:
+                continue
+            attempted.add(url)
+            if url in seen:
+                result["already_seen"] += 1
+                continue
+            try:
+                response = client.get(url, timeout=20)
+                response.raise_for_status()
+                if not allowed_url(response.url, source):
+                    raise ValueError("Article redirected off-site")
+                details = article_details(response.text)
+            except (requests.RequestException, ValueError):
+                result["article_errors"] += 1
+                continue
+            title = details["title"] or entry["title"]
+            if not relevant(" ".join((title, details["excerpt"], entry["summary"]))):
+                result["skipped_irrelevant"] += 1
+                continue
+            record = {
+                "report_id": "WEB:" + hashlib.sha256(url.encode()).hexdigest()[:16],
+                "source": source, "url": url, "title": title,
+                "published_date": details["published_date"] or entry["published_date"],
+                "excerpt": details["excerpt"],
+                "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                "identity_status": "UNVERIFIED"
+            }
+            file.write(json.dumps(record, ensure_ascii=False) + "\n")
+            file.flush()
+            seen.add(url)
+            result["new_reports"] += 1
+            if session is None:
+                time.sleep(1)
     return result
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Collect public school-infrastructure news")
+    parser = argparse.ArgumentParser(description="Extract public school-infrastructure articles")
     parser.add_argument("output")
     parser.add_argument("--max-items", type=int, default=40)
     parser.add_argument("--seed", action="store_true")
+    parser.add_argument("--urls-file", help="Text file with one Akashvani/PIB HTTPS URL per line")
+    parser.add_argument("--skip-feeds", action="store_true", help="Use seeds / URL file only; don't wait for RSS")
     args = parser.parse_args()
-
-    print(json.dumps(
-        collect(args.output, args.max_items, args.seed),
-        indent=2
-    ))
+    print(json.dumps(collect(args.output, args.max_items, args.seed,
+                             skip_feeds=args.skip_feeds, urls_file=args.urls_file), indent=2))
 
 
 if __name__ == "__main__":
