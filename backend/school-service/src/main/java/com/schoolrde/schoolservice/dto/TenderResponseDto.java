@@ -132,6 +132,4 @@ public class TenderResponseDto{
     public void setContractEndDate(Date date){
         this.contractEndDate = date;
     }
-
-	
 }

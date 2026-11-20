@@ -24,7 +24,7 @@ public class ProjectResponseDto{
     }
 
     public void setId(Integer id){
-        this.id = issueId;
+        this.id = id;
     }
 
     public Integer getIssueId(){
