@@ -2,7 +2,6 @@ package com.schoolrde.schoolservice.dto;
 
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.time.LocalDateTime;
 
 public class SchoolResponseDto{
 
