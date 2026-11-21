@@ -4,7 +4,6 @@ import java.sql.Date;
 
 public class SourceResponseDto{
 
-
     private Integer id;
     private String sourceName;
     private String sourceUrl;
@@ -42,5 +41,4 @@ public class SourceResponseDto{
 		this.publicationDate = publicationDate;
 	}
 
-	
 }

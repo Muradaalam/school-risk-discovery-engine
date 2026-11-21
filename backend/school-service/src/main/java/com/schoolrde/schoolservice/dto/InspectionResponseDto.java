@@ -49,5 +49,4 @@ public class InspectionResponseDto{
 	public void setInspectorName(String inspectorName){
 		this.inspectorName = inspectorName;
 	}
-	
 }
