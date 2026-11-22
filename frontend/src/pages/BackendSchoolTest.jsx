@@ -37,12 +37,35 @@ function BackendSchoolTest() {
 
   return (
     <div className="school-details-page">
-      <h1>Backend Connection Test</h1>
-      <p>Development testing only — school ID 1000001</p>
+      <h1>Live School Data</h1>
+<p>
+  View a real school record retrieved from the Spring Boot backend
+  and MySQL database.
+</p>
+<p>
+  Demo school ID: 1000001 — authentication token required.
+</p>
 
-      <form onSubmit={fetchSchool}>
+      <form
+          onSubmit={fetchSchool}
+          style={{
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            marginTop: '24px',
+          }}
+        >
         <input
           type="password"
+          style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            border: '1px solid #cbd5e1',
+            fontSize: '14px',
+            width: '320px',
+            maxWidth: '100%',
+          }}
           placeholder="Paste a fresh JWT token"
           value={token}
           onChange={(event) => setToken(event.target.value)}
@@ -51,25 +74,29 @@ function BackendSchoolTest() {
           aria-label="JWT token"
         />
 
-        <button type="submit">Fetch School</button>
+        <button
+  type="submit"
+  disabled={loading}
+  style={{
+    padding: '12px 20px',
+    backgroundColor: '#2563eb',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: loading ? 'not-allowed' : 'pointer',
+  }}
+>
+  {loading ? 'Fetching...' : 'Fetch School'}
+</button>
       </form>
 
       {loading && <Loading message="Fetching school..." />}
 
       {error && <ErrorMessage message={error} />}
 
-      {school && (
-        <div>
-          <h2>{school.schoolName}</h2>
-          <p>UDISE: {school.udiseCode}</p>
-          <p>District: {school.district}</p>
-          <p>State: {school.state}</p>
-          <p>
-            Priority Score:{' '}
-            {school.prioritySnapshots?.[0]?.priorityScore ?? 'Not available'}
-          </p>
-        </div>
-      )}
+
     </div>
   )
 }

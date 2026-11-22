@@ -5,6 +5,7 @@ const menuItems = [
   { name: 'Schools', icon: '/schoo.png' },
   { name: 'Map', icon: '/map.png' },
   { name: 'Analytics', icon: '/analytics.png' },
+  { name: 'BackendSchoolTest', icon: '🗄️' },
 ]
 
 function Sidebar({ activePage, onPageChange }) {
@@ -26,14 +27,16 @@ function Sidebar({ activePage, onPageChange }) {
                key={item.name}
                className={`sidebar-link ${activePage === item.name ? 'active' : ''}`}
                onClick={() => onPageChange(item.name)}
-               disabled={!['Dashboard', 'Schools', 'Map', 'Analytics'].includes(item.name)}
+               disabled={!['Dashboard', 'Schools', 'Map', 'Analytics', 'BackendSchoolTest'].includes(item.name)}
           >
             {item.icon.startsWith('/') ? (
       <img src={item.icon} alt="" className="menu-icon-img" />
       ) : (
         <span className="menu-icon">{item.icon}</span>
       )}
-        <span>{item.name}</span>
+        <span>
+  {item.name === 'BackendSchoolTest' ? 'Live Backend Demo' : item.name}
+</span>
           </button>
         ))}
       </nav>
