@@ -8,6 +8,7 @@ import SchoolDetails from './pages/SchoolDetails'
 import './App.css'
 import Map from './pages/Map'
 import Analytics from './pages/Analytics'
+// import Loading from './components/Loading'
 
 function App() {
   const [activePage, setActivePage] = useState('Dashboard')
