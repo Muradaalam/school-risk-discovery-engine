@@ -30,37 +30,62 @@ function getLatestSnapshot(school) {
     ? school.prioritySnapshots
     : []
 
-  return [...snapshots].sort(
-    (a, b) =>
+  return [...snapshots].sort((a, b) => {
+    const dateDifference =
       new Date(b.snapshotDate ?? 0) -
       new Date(a.snapshotDate ?? 0)
-  )[0] ?? null
+
+    return dateDifference || (b.id ?? 0) - (a.id ?? 0)
+  })[0] ?? null
+}
+
+function countBy(items, getKey) {
+  const counts = new Map()
+
+  items.forEach((item) => {
+    const key = getKey(item) || 'UNKNOWN'
+
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  })
+
+  return [...counts.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([name, count], index) => ({
+      name: name.replaceAll('_', ' '),
+      count,
+      color: chartColors[index % chartColors.length],
+    }))
 }
 
 function Analytics({ schools = demoSchools }) {
   const isBackendData = schools !== demoSchools
-
   const totalSchools = schools.length
 
   if (isBackendData) {
-    const assessedSchools = schools.filter(
-      (school) => getLatestSnapshot(school) !== null
+    const snapshots = schools.map(getLatestSnapshot)
+
+    const assessedSchools = snapshots.filter(
+      (snapshot) =>
+        snapshot?.priorityScore !== null &&
+        snapshot?.priorityScore !== undefined
     ).length
 
-    const missingAssessments = totalSchools - assessedSchools
+    const issues = schools.flatMap((school) =>
+      Array.isArray(school.issues) ? school.issues : []
+    )
+
+    const activeIssues = issues.filter(
+      (issue) => issue.status === 'ACTIVE'
+    ).length
+
+    const totalIssues = issues.length
 
     const scoreCounts = new Map()
-    const statusCounts = new Map()
 
-    let activeIssues = 0
-
-    schools.forEach((school) => {
-      const snapshot = getLatestSnapshot(school)
-
+    snapshots.forEach((snapshot) => {
       if (
-        snapshot &&
-        snapshot.priorityScore !== null &&
-        snapshot.priorityScore !== undefined
+        snapshot?.priorityScore !== null &&
+        snapshot?.priorityScore !== undefined
       ) {
         const score = String(snapshot.priorityScore)
 
@@ -69,70 +94,56 @@ function Analytics({ schools = demoSchools }) {
           (scoreCounts.get(score) ?? 0) + 1
         )
       }
-
-      const issues = Array.isArray(school.issues)
-        ? school.issues
-        : []
-
-      issues.forEach((issue) => {
-        const status = issue.status || 'UNKNOWN'
-
-        statusCounts.set(
-          status,
-          (statusCounts.get(status) ?? 0) + 1
-        )
-
-        if (status === 'ACTIVE') {
-          activeIssues += 1
-        }
-      })
     })
 
     const scoreData = [...scoreCounts.entries()]
-      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .sort((a, b) => Number(b[0]) - Number(a[0]))
       .map(([score, count], index) => ({
         name: `Score ${score}`,
         count,
         color: chartColors[index % chartColors.length],
       }))
 
-    const assessmentData = [
-      {
-        name: 'Assessed',
-        count: assessedSchools,
-        color: '#10b981',
-      },
-      {
-        name: 'Not Assessed',
-        count: missingAssessments,
-        color: '#f59e0b',
-      },
-    ]
+    const issueTypeData = countBy(
+      issues,
+      (issue) => issue.issueType
+    )
 
-    const issueStatusData = [...statusCounts.entries()]
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([status, count], index) => ({
-        name: status.replaceAll('_', ' '),
-        count,
-        color: chartColors[index % chartColors.length],
-      }))
+    const issueStatusData = countBy(
+      issues,
+      (issue) => issue.status
+    )
 
     const summaryItems = [
-      { name: 'Total Schools', value: totalSchools },
-      { name: 'Assessed Schools', value: assessedSchools },
-      { name: 'Missing Assessments', value: missingAssessments },
-      { name: 'Active Issues', value: activeIssues },
+      {
+        name: 'Top Schools Loaded',
+        value: totalSchools,
+      },
+      {
+        name: 'Assessed Schools',
+        value: assessedSchools,
+      },
+      {
+        name: 'Active Issues',
+        value: activeIssues,
+      },
+      {
+        name: 'Total Reported Issues',
+        value: totalIssues,
+      },
     ]
 
     return (
       <div className="analytics-page">
         <div className="analytics-header">
-          <h1>School Analytics</h1>
+          <h1>Top Priority School Analytics</h1>
+
           <p>
             Live analytics from {totalSchools} school records
-            fetched from the backend. Priority scores are
-            displayed as recorded, without assuming a
-            High/Medium/Low mapping.
+            returned by the Top 50 priority-ranked schools API.
+            Only schools with priority assessments are eligible.
+            Numeric scores are shown as recorded, without an
+            assumed High/Medium/Low mapping.
           </p>
         </div>
 
@@ -154,15 +165,20 @@ function Analytics({ schools = demoSchools }) {
 
             <div className="analytics-chart">
               {scoreData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
                   <BarChart data={scoreData}>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
                     />
+
                     <XAxis dataKey="name" />
                     <YAxis allowDecimals={false} />
                     <Tooltip />
+
                     <Bar
                       dataKey="count"
                       name="Schools"
@@ -184,33 +200,37 @@ function Analytics({ schools = demoSchools }) {
           </div>
 
           <div className="analytics-chart-card">
-            <h2>Assessment Coverage</h2>
+            <h2>Issue Type Breakdown</h2>
 
             <div className="analytics-chart">
-              {totalSchools > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+              {issueTypeData.length > 0 ? (
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
                   <PieChart>
                     <Pie
-                      data={assessmentData}
+                      data={issueTypeData}
                       dataKey="count"
                       nameKey="name"
                       cx="50%"
                       cy="45%"
                       outerRadius={100}
                     >
-                      {assessmentData.map((item) => (
+                      {issueTypeData.map((item) => (
                         <Cell
                           key={item.name}
                           fill={item.color}
                         />
                       ))}
                     </Pie>
+
                     <Tooltip />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p>No schools loaded.</p>
+                <p>No issue records available.</p>
               )}
             </div>
           </div>
@@ -220,15 +240,24 @@ function Analytics({ schools = demoSchools }) {
 
             <div className="analytics-chart">
               {issueStatusData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
                   <BarChart data={issueStatusData}>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
                     />
-                    <XAxis dataKey="name" />
+
+                    <XAxis
+                      dataKey="name"
+                      interval={0}
+                    />
+
                     <YAxis allowDecimals={false} />
                     <Tooltip />
+
                     <Bar
                       dataKey="count"
                       name="Issues"
@@ -244,22 +273,23 @@ function Analytics({ schools = demoSchools }) {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p>No issue records returned by the backend.</p>
+                <p>No issue status data available.</p>
               )}
             </div>
           </div>
         </div>
 
         <p>
-          Data coverage: these statistics include only schools
-          currently loaded from the backend. They are not
-          statewide totals.
+          Data coverage: statistics describe only the
+          priority-ranked schools returned by the backend.
+          Schools without assessments are excluded, and
+          these figures are not statewide totals.
         </p>
       </div>
     )
   }
 
-  // Preserve the original demo analytics.
+  // Original demo analytics remains unchanged.
   const priorityData = [
     'High',
     'Medium',
@@ -278,6 +308,7 @@ function Analytics({ schools = demoSchools }) {
     <div className="analytics-page">
       <div className="analytics-header">
         <h1>School Analytics</h1>
+
         <p>
           Overview of school inspection priorities.
           All values shown are demo data.
@@ -296,6 +327,7 @@ function Analytics({ schools = demoSchools }) {
             key={item.name}
           >
             <p>{item.name}</p>
+
             <h2 style={{ color: item.color }}>
               {item.count}
             </h2>
@@ -308,15 +340,20 @@ function Analytics({ schools = demoSchools }) {
           <h2>Inspection Priority Distribution</h2>
 
           <div className="analytics-chart">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
               <BarChart data={priorityData}>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
                 />
+
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />
                 <Tooltip />
+
                 <Bar
                   dataKey="count"
                   name="Schools"
@@ -338,7 +375,10 @@ function Analytics({ schools = demoSchools }) {
           <h2>Priority Breakdown</h2>
 
           <div className="analytics-chart">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
               <PieChart>
                 <Pie
                   data={priorityData}
@@ -355,6 +395,7 @@ function Analytics({ schools = demoSchools }) {
                     />
                   ))}
                 </Pie>
+
                 <Tooltip />
                 <Legend />
               </PieChart>
