@@ -21,6 +21,7 @@ public class ObjectCategory{
 	@Column(name = "description", length = 100)
 	private String description;
 
+    // Getters and setters are generated using STS: Source > Generate Getters and Setters
 	public Integer getId(){
 		return id;
 	}

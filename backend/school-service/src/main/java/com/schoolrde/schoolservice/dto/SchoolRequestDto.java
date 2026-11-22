@@ -16,6 +16,7 @@ public class SchoolRequestDto{
     private String schoolType;
     private String managementType;
 
+    // Getters and setters are generated using STS: Source > Generate Getters and Setters
     public SchoolRequestDto(){
     }
 

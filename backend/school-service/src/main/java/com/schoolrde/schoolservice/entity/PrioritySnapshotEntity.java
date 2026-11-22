@@ -48,6 +48,7 @@ public class PrioritySnapshotEntity{
     @Column(name = "updated_by", insertable = false, updatable = false)
 	private String updatedBy;
 
+    // Getters and setters are generated using STS: Source > Generate Getters and Setters
 	public Integer getId(){
 		return id;
 	}

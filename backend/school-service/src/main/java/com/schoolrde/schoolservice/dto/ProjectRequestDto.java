@@ -17,6 +17,7 @@ public class ProjectRequestDto{
 	private Date actualCompletionDate;
 	private String remarks;
 
+    // Getters and setters are generated using STS: Source > Generate Getters and Setters
 	public Integer getId(){
 	    return id;
 	}
