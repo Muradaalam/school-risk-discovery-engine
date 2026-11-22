@@ -1,6 +1,7 @@
 package com.schoolrde.schoolservice.dao.bussiness;
 
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import com.schoolrde.schoolservice.dao.repository.SchoolRepository;
@@ -33,6 +34,12 @@ public class SchoolDaoImpl implements SchoolDao{
     public Optional<SchoolEntireEntity> findById(Integer id){
     	LOGGER.info("Quering school from database with id : {}", id);
         return schoolRepository.findById(id);
+    }
+    
+    @Override
+    public List<SchoolEntireEntity> findTop50SchoolsByPriorityScore(){
+        LOGGER.info("Quering top 50 schools from database based on priority score");
+        return schoolRepository.findTop50SchoolsByPriorityScore();
     }
     
     @Override
