@@ -9,38 +9,39 @@ import {
 import './Dashboard.css'
 import { demoSchools } from '../data/demoSchools'
 
-const stats = [
+
+
+function Dashboard({ schools = demoSchools }) {
+  const stats = [
   {
     title: 'Total Schools',
-    value: demoSchools.length,
-    description: 'Schools in the database',
+    value: schools.length,
+    description: 'Schools in the demo database',
     icon: School,
     color: 'blue',
   },
   {
     title: 'High Priority',
-    value: demoSchools.filter((school) => school.priority === 'High').length,
+    value: schools.filter((school) => school.priority === 'High').length,
     description: 'Priority for inspection',
     icon: TriangleAlert,
     color: 'red',
   },
   {
     title: 'Medium Priority',
-    value: demoSchools.filter((school) => school.priority === 'Medium').length,
+    value: schools.filter((school) => school.priority === 'Medium').length,
     description: 'Priority for inspection',
     icon: CircleAlert,
     color: 'orange',
   },
   {
     title: 'Low Priority',
-    value: 	demoSchools.filter((school) => school.priority === 'Low').length,
+    value: schools.filter((school) => school.priority === 'Low').length,
     description: 'Priority for inspection',
     icon: CircleCheck,
     color: 'green',
   },
 ]
-
-function Dashboard() {
   return (
     <div className="dashboard">
       <div className="dashboard-heading">
