@@ -9,63 +9,82 @@ import {
 import './Dashboard.css'
 import { demoSchools } from '../data/demoSchools'
 
+function getLatestSnapshot(school) {
+  const snapshots = Array.isArray(school.prioritySnapshots)
+    ? school.prioritySnapshots
+    : []
+
+  return [...snapshots].sort((a, b) => {
+    const dateDifference =
+      new Date(b.snapshotDate ?? 0) -
+      new Date(a.snapshotDate ?? 0)
+
+    return dateDifference || (b.id ?? 0) - (a.id ?? 0)
+  })[0] ?? null
+}
+
 function Dashboard({ schools = demoSchools }) {
   const isBackendData = schools !== demoSchools
 
-  const latestSnapshots = schools.map((school) => {
-    const snapshots = school.prioritySnapshots
-
-    if (!Array.isArray(snapshots) || snapshots.length === 0) {
-      return null
-    }
-
-    return [...snapshots].sort(
-      (a, b) =>
-        new Date(b.snapshotDate ?? 0) -
-        new Date(a.snapshotDate ?? 0)
-    )[0]
-  })
+  const latestSnapshots = isBackendData
+    ? schools.map(getLatestSnapshot)
+    : []
 
   const assessedSchools = latestSnapshots.filter(
     (snapshot) => snapshot?.priorityScore != null
   ).length
 
-  const activeIssues = latestSnapshots.reduce(
-    (total, snapshot) =>
-      total + (Number(snapshot?.activeIssues) || 0),
-    0
-  )
+  const activeIssues = isBackendData
+    ? schools.reduce((total, school) => {
+        const issues = Array.isArray(school.issues)
+          ? school.issues
+          : []
 
-  const missingAssessments =
-    schools.length - assessedSchools
+        return total + issues.filter(
+          (issue) => issue.status === 'ACTIVE'
+        ).length
+      }, 0)
+    : 0
+
+  const totalIssues = isBackendData
+    ? schools.reduce(
+        (total, school) =>
+          total + (
+            Array.isArray(school.issues)
+              ? school.issues.length
+              : 0
+          ),
+        0
+      )
+    : 0
 
   const stats = isBackendData
     ? [
         {
-          title: 'Total Schools',
+          title: 'Top Schools Loaded',
           value: schools.length,
-          description: 'Known schools loaded from backend',
+          description: 'Up to 50 schools ranked by latest priority score',
           icon: School,
           color: 'blue',
         },
         {
           title: 'Assessed Schools',
           value: assessedSchools,
-          description: 'Schools with a recorded priority score',
+          description: 'Loaded schools with a recorded priority score',
           icon: CircleCheck,
           color: 'green',
         },
         {
           title: 'Active Issues',
           value: activeIssues,
-          description: 'Active issues in latest priority snapshots',
+          description: 'Issues with ACTIVE status in loaded schools',
           icon: TriangleAlert,
           color: 'red',
         },
         {
-          title: 'Missing Assessments',
-          value: missingAssessments,
-          description: 'Schools without a recorded priority score',
+          title: 'Total Reported Issues',
+          value: totalIssues,
+          description: 'All reported issues across loaded schools',
           icon: CircleAlert,
           color: 'orange',
         },
@@ -118,7 +137,7 @@ function Dashboard({ schools = demoSchools }) {
 
         <p className="dashboard-demo-note">
           {isBackendData
-            ? `Showing ${schools.length} known school records fetched from Spring Boot and MySQL. Statistics use the latest available priority snapshots.`
+            ? `Showing ${schools.length} top-priority school records from Spring Boot and MySQL. The backend ranks up to 50 schools by their latest priority scores. Schools without priority assessments are excluded. These are not statewide totals.`
             : 'Statistics are based on demonstration data.'}
         </p>
       </div>
@@ -128,7 +147,10 @@ function Dashboard({ schools = demoSchools }) {
           const Icon = stat.icon
 
           return (
-            <div className="stat-card" key={stat.title}>
+            <div
+              className="stat-card"
+              key={stat.title}
+            >
               <div className="stat-card-top">
                 <span className="stat-title">
                   {stat.title}
