@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.schoolrde.schoolservice.dao.bussiness.InspectionDao;
+import com.schoolrde.schoolservice.dto.DocumentResponseDto;
 import com.schoolrde.schoolservice.dto.InspectionRequestDto;
 import com.schoolrde.schoolservice.dto.InspectionResponseDto;
 import com.schoolrde.schoolservice.entity.InspectionEntity;
@@ -18,11 +19,15 @@ import com.schoolrde.schoolservice.exception.CustomException;
 public class InspectionService{
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(InspectionService.class);
+	
+	public static final Integer CATEGORY_INSPECTION = 6;
 
 	private final InspectionDao inspectionDao;
+    private final DocumentService documentService;
 
-	public InspectionService(InspectionDao inspectionDao){
+	public InspectionService(InspectionDao inspectionDao, DocumentService documentService){
 	    this.inspectionDao = inspectionDao;
+	    this.documentService = documentService;
 	}
 
 	
@@ -88,6 +93,9 @@ public class InspectionService{
 	    inspectionResponseDto.setInspectionType(inspectionEntity.getInspectionType());
 	    inspectionResponseDto.setRemarks(inspectionEntity.getRemarks());
 	    inspectionResponseDto.setInspectorName(inspectionEntity.getInspectorName());
+	    List<DocumentResponseDto> inspectionDocuments = documentService
+	    		.getDocumentByObjectIdAndObjectCategoryId(inspectionEntity.getId(), CATEGORY_INSPECTION);
+	    inspectionResponseDto.setInspectionDocuments(inspectionDocuments);
 
 	    return inspectionResponseDto;
 	}

@@ -24,7 +24,7 @@ public class SourceEntity{
 	private Integer schoolId;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "source_name_id", nullable = false)
+    @JoinColumn(name = "source_name_id", referencedColumnName = "id", nullable = false)
     private SourceName sourceName;
 	
 	@Column(name = "source_url", length = 200)

@@ -5,7 +5,7 @@ public class DocumentRequestDto{
 
 	private Integer id;
 	private Integer objectId;
-	private Integer objectCategoryId;
+	private String objectCategory;
 	private Integer sourceId;
 	private String documentName;
 	private String docPath;
@@ -28,12 +28,12 @@ public class DocumentRequestDto{
 	    this.objectId = objectId;
 	}
 
-	public Integer getObjectCategoryId(){
-	    return objectCategoryId;
+	public String getObjectCategory(){
+	    return objectCategory;
 	}
 
-	public void setObjectCategoryId(Integer objectCategoryId){
-	    this.objectCategoryId = objectCategoryId;
+	public void setObjectCategoryId(String objectCategory){
+	    this.objectCategory = objectCategory;
 	}
 
 	public Integer getSourceId(){

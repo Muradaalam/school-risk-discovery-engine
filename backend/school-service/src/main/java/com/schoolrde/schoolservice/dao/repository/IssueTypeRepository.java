@@ -9,5 +9,7 @@ import com.schoolrde.schoolservice.entity.IssueType;
 public interface IssueTypeRepository extends JpaRepository<IssueType,Integer>{
     
 	Optional<IssueType> findById(Integer Id);
+	
+	Optional<IssueType> findByIssueType(String issueType);
     
 }

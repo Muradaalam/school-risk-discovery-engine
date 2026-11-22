@@ -6,8 +6,8 @@ public class IssueRequestDto{
 
 	private Integer id;
 	private Integer schoolId;
-	private Integer issueTypeId;
-	private Integer statusId;
+	private String issueType;
+	private String issueStatus;
 	private Date firstDetected;
 	private Date lastUpdated;
 	private Date resolvedAt;
@@ -29,20 +29,20 @@ public class IssueRequestDto{
 	    this.schoolId = schoolId;
 	}
 
-	public Integer getIssueTypeId(){
-	    return issueTypeId;
+	public String getIssueType(){
+	    return issueType;
 	}
 
-	public void setIssueTypeId(Integer issueTypeId){
-	    this.issueTypeId = issueTypeId;
+	public void setIssueTypeId(String issueType){
+	    this.issueType = issueType;
 	}
 
-	public Integer getStatusId(){
-	    return statusId;
+	public String getIssueStatus(){
+	    return issueStatus;
 	}
 
-	public void setStatusId(Integer statusId){
-	    this.statusId = statusId;
+	public void setIssueStatus(String issueStatus){
+	    this.issueStatus = issueStatus;
 	}
 
 	public Date getFirstDetected(){

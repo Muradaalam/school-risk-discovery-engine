@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.schoolrde.schoolservice.dao.bussiness.EventDao;
+import com.schoolrde.schoolservice.dao.repository.EventTypeRepository;
+import com.schoolrde.schoolservice.dto.DocumentResponseDto;
 import com.schoolrde.schoolservice.dto.EventRequestDto;
 import com.schoolrde.schoolservice.dto.EventResponseDto;
 import com.schoolrde.schoolservice.entity.EventEntity;
@@ -15,24 +17,23 @@ import com.schoolrde.schoolservice.entity.EventType;
 import com.schoolrde.schoolservice.exception.CustomException;
 
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
 @Service
 public class EventService{
 	
     private static final Logger LOGGER=LoggerFactory.getLogger(EventService.class);
 
+    public static final Integer CATEGORY_EVENT = 3;
+    
     private final EventDao eventDao;
+    private final DocumentService documentService;
+    private final EventTypeRepository eventTypeRepository;
 
-    EventService(EventDao eventDao) {
+    EventService(EventDao eventDao, EventTypeRepository eventTypeRepository, DocumentService documentService){
         this.eventDao = eventDao;
+        this.eventTypeRepository = eventTypeRepository;
+        this.documentService = documentService;
     }
     
-    @PersistenceContext
-    private EntityManager entityManager;
-
-
     public List<EventResponseDto> getEventBySchoolId(Integer schoolId){
 
         LOGGER.info("Fetching events for schoolId : {}", schoolId);
@@ -66,7 +67,12 @@ public class EventService{
 
         EventEntity eventEntity = new EventEntity();
         eventEntity.setSchoolId(eventRequestDto.getSchoolId());
-        EventType eventType = entityManager.getReference(EventType.class, eventRequestDto.getEventTypeId());
+        EventType eventType = eventTypeRepository.findById(eventRequestDto.getEventTypeId())
+                .orElseGet(()->{
+                    LOGGER.warn("Event type not found with id: {}, setting event type to OTHER", eventRequestDto.getEventTypeId());
+                    return eventTypeRepository.findByEventType("OTHER")
+                            .orElseThrow(()-> new CustomException("E9007"));
+                });
         eventEntity.setEventType(eventType);
         eventEntity.setDetailedDescription(eventRequestDto.getDetailedDescription());
         eventEntity.setEventDate(eventRequestDto.getEventDate());
@@ -91,6 +97,9 @@ public class EventService{
         eventResponseDto.setDetailedDescription(eventEntity.getDetailedDescription());
         eventResponseDto.setEventDate(eventEntity.getEventDate());
         eventResponseDto.setLocation(eventEntity.getLocation());
+        List<DocumentResponseDto> documents = documentService
+        		.getDocumentByObjectIdAndObjectCategoryId(eventEntity.getId(), CATEGORY_EVENT);
+        eventResponseDto.setEventDocuments(documents);
 
         return eventResponseDto;
 

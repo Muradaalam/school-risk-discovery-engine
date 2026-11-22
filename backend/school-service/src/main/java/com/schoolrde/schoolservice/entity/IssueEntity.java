@@ -26,14 +26,11 @@ public class IssueEntity{
 	private Integer schoolId;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "issue_type_id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "issue_type_id", referencedColumnName = "id", nullable = false)
 	private IssueType issueType;
 	
-	@Column(name = "status_id",  nullable = false)
-	private Integer statusId;
-	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "status_id", referencedColumnName = "id", insertable = false, updatable = false)
+	@JoinColumn(name = "status_id", referencedColumnName = "id", nullable = false)
 	private IssueStatus issueStatus;
 
 	@Column(name = "first_detected")
@@ -77,10 +74,6 @@ public class IssueEntity{
     public void setSchoolId(Integer schoolId){
         this.schoolId = schoolId;
     }
-
-    public Integer getStatusId(){
-        return statusId;
-    }
     
     public IssueType getIssueType(){
         return issueType;
@@ -88,10 +81,6 @@ public class IssueEntity{
 
     public void setIssueType(IssueType issueType){
         this.issueType = issueType;
-    }
-
-    public void setStatusId(Integer statusId){
-        this.statusId = statusId;
     }
 
     public IssueStatus getIssueStatus(){

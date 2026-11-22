@@ -13,8 +13,8 @@ public class IssueResponseDto{
     private Date firstDetected;
     private Date lastUpdated;
     private Date resolvedAt;
+    private List<DocumentResponseDto> issueDocuments;
     private List<ProjectResponseDto> projects;
-
 
 	// Getters and setters are generated using STS: Source > Generate Getters and Setters
     public Integer getId(){
@@ -81,12 +81,20 @@ public class IssueResponseDto{
         this.resolvedAt = resolvedAt;
     }
     
-    public List<ProjectResponseDto> getProjects() {
+    public List<DocumentResponseDto> getIssueDocuments(){
+        return issueDocuments;
+    }
+
+    public void setIssueDocuments(List<DocumentResponseDto> issueDocuments){
+        this.issueDocuments = issueDocuments;
+    }
+
+    public List<ProjectResponseDto> getProjects(){
         return projects;
     }
 
-    public void setProjects(List<ProjectResponseDto> projects) {
+    public void setProjects(List<ProjectResponseDto> projects){
         this.projects = projects;
     }
-
+    
 }

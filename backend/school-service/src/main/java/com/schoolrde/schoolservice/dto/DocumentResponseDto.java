@@ -4,8 +4,8 @@ public class DocumentResponseDto{
 
 	private Integer id;
 	private Integer objectId;
-	private Integer objectCategoryId;
-	private Integer sourceId;
+	private String objectCategory;
+	private SourceResponseDto source;
 	private String documentName;
 	private String docPath;
 	private String description;
@@ -27,20 +27,20 @@ public class DocumentResponseDto{
 	    this.objectId = objectId;
 	}
 
-	public Integer getObjectCategoryId(){
-	    return objectCategoryId;
+	public String getObjectCategory(){
+	    return objectCategory;
 	}
 
-	public void setObjectCategoryId(Integer objectCategoryId){
-	    this.objectCategoryId = objectCategoryId;
+	public void setObjectCategory(String objectCategory){
+	    this.objectCategory = objectCategory;
 	}
 
-	public Integer getSourceId(){
-	    return sourceId;
+	public SourceResponseDto getSource(){
+		return source;
 	}
 
-	public void setSourceId(Integer sourceId){
-	    this.sourceId = sourceId;
+	public void setSource(SourceResponseDto source){
+		this.source = source;
 	}
 
 	public String getDocumentName(){

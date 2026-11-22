@@ -10,4 +10,6 @@ public interface SourceNameRepository extends JpaRepository<SourceName,Integer>{
     
 	Optional<SourceName> findById(Integer Id);
     
+	Optional<SourceName> findBySourceName(String sourceName);
+	
 }

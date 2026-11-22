@@ -16,10 +16,10 @@ public class SchoolEntireResponseDto{
     private BigDecimal longitude;
     private String schoolType;
     private String managementType;
+    private List<DocumentResponseDto> schoolDocuments;
     private List<PrioritySnapshotResponseDto> prioritySnapshots;
     private List<IssueResponseDto> issues;
     private List<InspectionResponseDto> inspections;
-    private List<SourceResponseDto> sources;
     private List<EventResponseDto> events;
     
     // Getters and setters are generated using STS: Source > Generate Getters and Setters
@@ -111,6 +111,14 @@ public class SchoolEntireResponseDto{
 		this.managementType = managementType;
 	}
 
+	public List<DocumentResponseDto> getSchoolDocuments(){
+        return schoolDocuments;
+    }
+
+    public void setSchoolDocuments(List<DocumentResponseDto> schoolDocuments){
+        this.schoolDocuments = schoolDocuments;
+    }
+
 	public List<PrioritySnapshotResponseDto> getPrioritySnapshots(){
 		return prioritySnapshots;
 	}
@@ -133,14 +141,6 @@ public class SchoolEntireResponseDto{
 
 	public void setInspections(List<InspectionResponseDto> inspections){
 		this.inspections = inspections;
-	}
-
-	public List<SourceResponseDto> getSources(){
-		return sources;
-	}
-
-	public void setSources(List<SourceResponseDto> sources){
-		this.sources = sources;
 	}
 
 	public List<EventResponseDto> getEvents(){

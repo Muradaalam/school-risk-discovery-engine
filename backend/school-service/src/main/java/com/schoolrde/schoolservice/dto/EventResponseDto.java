@@ -1,6 +1,7 @@
 package com.schoolrde.schoolservice.dto;
 
 import java.sql.Date;
+import java.util.List;
 
 public class EventResponseDto{
 
@@ -10,7 +11,8 @@ public class EventResponseDto{
 	private String detailedDescription;
 	private Date eventDate;
 	private String location;
-
+	private List<DocumentResponseDto> eventDocuments;
+	
 	// Getters and setters are generated using STS: Source > Generate Getters and Setters
 	public Integer getId(){
 	    return id;
@@ -60,4 +62,11 @@ public class EventResponseDto{
 	    this.location = location;
 	}
 
+	public List<DocumentResponseDto> getEventDocuments(){
+	    return eventDocuments;
+	}
+
+	public void setEventDocuments(List<DocumentResponseDto> eventDocuments){
+	    this.eventDocuments = eventDocuments;
+	}
 }

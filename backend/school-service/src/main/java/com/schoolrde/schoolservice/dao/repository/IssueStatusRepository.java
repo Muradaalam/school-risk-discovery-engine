@@ -10,4 +10,6 @@ public interface IssueStatusRepository extends JpaRepository<IssueStatus,Integer
     
 	Optional<IssueStatus> findById(Integer Id);
     
+	Optional<IssueStatus> findByStatus(String issueStatus);
+	
 }
