@@ -9,56 +9,118 @@ import {
 import './Dashboard.css'
 import { demoSchools } from '../data/demoSchools'
 
-
-
 function Dashboard({ schools = demoSchools }) {
   const isBackendData = schools !== demoSchools
-  const stats = [
-  {
-    title: 'Total Schools',
-    value: schools.length,
-    description: 'Schools in the demo database',
-    icon: School,
-    color: 'blue',
-  },
-  {
-    title: 'High Priority',
-    value: isBackendData
-  ? 'N/A'
-  : schools.filter((school) => school.priority === 'High').length,
-    description: 'Priority for inspection',
-    icon: TriangleAlert,
-    color: 'red',
-  },
-  {
-    title: 'Medium Priority',
-    value: isBackendData
-  ? 'N/A'
-  : schools.filter((school) => school.priority === 'Medium').length,
-    description: 'Priority for inspection',
-    icon: CircleAlert,
-    color: 'orange',
-  },
-  {
-    title: 'Low Priority',
-    value: isBackendData
-  ? 'N/A'
-  : schools.filter((school) => school.priority === 'Low').length,
-    description: 'Priority for inspection',
-    icon: CircleCheck,
-    color: 'green',
-  },
-]
+
+  const latestSnapshots = schools.map((school) => {
+    const snapshots = school.prioritySnapshots
+
+    if (!Array.isArray(snapshots) || snapshots.length === 0) {
+      return null
+    }
+
+    return [...snapshots].sort(
+      (a, b) =>
+        new Date(b.snapshotDate ?? 0) -
+        new Date(a.snapshotDate ?? 0)
+    )[0]
+  })
+
+  const assessedSchools = latestSnapshots.filter(
+    (snapshot) => snapshot?.priorityScore != null
+  ).length
+
+  const activeIssues = latestSnapshots.reduce(
+    (total, snapshot) =>
+      total + (Number(snapshot?.activeIssues) || 0),
+    0
+  )
+
+  const missingAssessments =
+    schools.length - assessedSchools
+
+  const stats = isBackendData
+    ? [
+        {
+          title: 'Total Schools',
+          value: schools.length,
+          description: 'Known schools loaded from backend',
+          icon: School,
+          color: 'blue',
+        },
+        {
+          title: 'Assessed Schools',
+          value: assessedSchools,
+          description: 'Schools with a recorded priority score',
+          icon: CircleCheck,
+          color: 'green',
+        },
+        {
+          title: 'Active Issues',
+          value: activeIssues,
+          description: 'Active issues in latest priority snapshots',
+          icon: TriangleAlert,
+          color: 'red',
+        },
+        {
+          title: 'Missing Assessments',
+          value: missingAssessments,
+          description: 'Schools without a recorded priority score',
+          icon: CircleAlert,
+          color: 'orange',
+        },
+      ]
+    : [
+        {
+          title: 'Total Schools',
+          value: schools.length,
+          description: 'Schools in the demo dataset',
+          icon: School,
+          color: 'blue',
+        },
+        {
+          title: 'High Priority',
+          value: schools.filter(
+            (school) => school.priority === 'High'
+          ).length,
+          description: 'Priority for inspection',
+          icon: TriangleAlert,
+          color: 'red',
+        },
+        {
+          title: 'Medium Priority',
+          value: schools.filter(
+            (school) => school.priority === 'Medium'
+          ).length,
+          description: 'Priority for inspection',
+          icon: CircleAlert,
+          color: 'orange',
+        },
+        {
+          title: 'Low Priority',
+          value: schools.filter(
+            (school) => school.priority === 'Low'
+          ).length,
+          description: 'Priority for inspection',
+          icon: CircleCheck,
+          color: 'green',
+        },
+      ]
+
   return (
     <div className="dashboard">
       <div className="dashboard-heading">
         <h1>Dashboard Overview</h1>
-        <p>School Evidence & Inspection Priority System</p>
-       <p className="dashboard-demo-note">
-  {isBackendData
-    ? 'Showing 3 verified school records fetched from the backend. Priority categories are not yet available.'
-    : 'Statistics are based on demonstration data.'}
-</p>
+
+        <p>
+          School Evidence & Inspection Priority System
+        </p>
+
+        <p className="dashboard-demo-note">
+          {isBackendData
+            ? `Showing ${schools.length} known school records fetched from Spring Boot and MySQL. Statistics use the latest available priority snapshots.`
+            : 'Statistics are based on demonstration data.'}
+        </p>
       </div>
 
       <div className="stats-grid">
@@ -77,7 +139,9 @@ function Dashboard({ schools = demoSchools }) {
                 </div>
               </div>
 
-              <h2 className="stat-value">{stat.value}</h2>
+              <h2 className="stat-value">
+                {stat.value}
+              </h2>
 
               <p className="stat-description">
                 {stat.description}
