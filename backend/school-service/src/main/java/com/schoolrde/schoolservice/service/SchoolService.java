@@ -1,5 +1,6 @@
 package com.schoolrde.schoolservice.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -75,6 +76,22 @@ public class SchoolService{
         LOGGER.info("School retrieved successfully with Id : {}",id);
         return convertToSchoolEntireResponseDto(schoolEntireEntity);
     }
+    
+    public List<SchoolEntireResponseDto> getTop50SchoolsByPriorityScore(){
+
+        LOGGER.info("get top 50 schools based on priority score");
+
+        List<SchoolEntireEntity> schoolEntities = schoolDao.findTop50SchoolsByPriorityScore();
+
+        LOGGER.info("Retrieved {} schools based on priority score", schoolEntities.size());
+
+        List<SchoolEntireResponseDto> schoolEntireResponseDtos = schoolEntities.stream()
+                .map(this::convertToSchoolEntireResponseDto)
+                .collect(Collectors.toList());
+        
+        return schoolEntireResponseDtos;
+    }
+
     
     public Integer createSchool(SchoolRequestDto schoolRequestDto){
         if(schoolRequestDto.getSchoolId() == null || schoolRequestDto.getSchoolId().isBlank()){

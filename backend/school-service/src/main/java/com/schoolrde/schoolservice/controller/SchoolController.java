@@ -1,10 +1,11 @@
 package com.schoolrde.schoolservice.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import com.schoolrde.schoolservice.dto.RequestLoggerDto;
@@ -29,11 +30,6 @@ public class SchoolController{
     SchoolController(SchoolService schoolService){
         this.schoolService = schoolService;
     }
-
-	@GetMapping("/csrf-token")
-	public CsrfToken getCsrfToken(CsrfToken csrfToken){
-	    return csrfToken;
-	}
 	
     @GetMapping("/getSchool/schoolId")
     public ResponseEntity<SchoolResponseDto> getSchoolBySchoolId(@RequestParam String schoolId, HttpServletRequest request) throws Exception{
@@ -69,18 +65,44 @@ public class SchoolController{
     	requestLoggerDto.setRequestBody("{\"id\":\"" + id + "\"}");
     	LOGGER.info("Request : {}", JsonUtility.toJson(requestLoggerDto));
 
-    	SchoolEntireResponseDto schoolWithIssueResponseDto = schoolService.getSchoolById(id);
+    	SchoolEntireResponseDto schoolEntireResponseDto = schoolService.getSchoolById(id);
 
         ResponseLoggerDto responseLoggerDto = new ResponseLoggerDto();
     	responseLoggerDto.setApi(uri);
     	responseLoggerDto.setMethod(method);
     	responseLoggerDto.setStatusCode(HttpStatus.OK.value());
-    	responseLoggerDto.setResponseBody(JsonUtility.toJson(schoolWithIssueResponseDto));
+    	responseLoggerDto.setResponseBody(JsonUtility.toJson(schoolEntireResponseDto));
     	LOGGER.info("Response: {}", JsonUtility.toJson(responseLoggerDto));
     	
-    	return ResponseEntity.ok(schoolWithIssueResponseDto);
+    	return ResponseEntity.ok(schoolEntireResponseDto);
 }
     
+    @GetMapping("/getTop50Schools")
+    public ResponseEntity<List<SchoolEntireResponseDto>> getTop50Schools(HttpServletRequest request) throws Exception{
+
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+
+        RequestLoggerDto requestLoggerDto = new RequestLoggerDto();
+        requestLoggerDto.setApi(uri);
+        requestLoggerDto.setMethod(method);
+        requestLoggerDto.setRequestBody("{}");
+
+        LOGGER.info("Request : {}", JsonUtility.toJson(requestLoggerDto));
+
+        List<SchoolEntireResponseDto> schoolEntireResponeDto = schoolService.getTop50SchoolsByPriorityScore();
+
+        ResponseLoggerDto responseLoggerDto = new ResponseLoggerDto();
+        responseLoggerDto.setApi(uri);
+        responseLoggerDto.setMethod(method);
+        responseLoggerDto.setStatusCode(HttpStatus.OK.value());
+        responseLoggerDto.setResponseBody(JsonUtility.toJson(schoolEntireResponeDto));
+
+        LOGGER.info("Response: {}", JsonUtility.toJson(responseLoggerDto));
+
+        return ResponseEntity.ok(schoolEntireResponeDto);
+    }
+
     
     @PostMapping("/createSchool")
     public ResponseEntity<Integer> createSchool(@RequestBody SchoolRequestDto schoolRequestDto, HttpServletRequest request) throws Exception{
