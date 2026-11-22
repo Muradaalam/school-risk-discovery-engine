@@ -11,6 +11,7 @@ public class PrioritySnapshotResponseDto{
     private Integer underResolutionIssues;
     private Integer resolvedIssues;
 	
+    // Getters and setters are generated using STS: Source > Generate Getters and Setters
     public Integer getId(){
 		return id;
 	}

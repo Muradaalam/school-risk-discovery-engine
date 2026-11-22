@@ -16,6 +16,7 @@ public class IssueResponseDto{
     private List<ProjectResponseDto> projects;
 
 
+	// Getters and setters are generated using STS: Source > Generate Getters and Setters
     public Integer getId(){
         return id;
     }

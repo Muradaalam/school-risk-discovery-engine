@@ -73,6 +73,7 @@ public class SchoolEntireEntity{
     @JoinColumn(name = "school_id", referencedColumnName = "id", insertable = false, updatable = false)
     private List<EventEntity> events;
 
+    // Getters and setters are generated using STS: Source > Generate Getters and Setters
 	public Integer getId(){
 		return id;
 	}

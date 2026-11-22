@@ -11,6 +11,7 @@ public class EventResponseDto{
 	private Date eventDate;
 	private String location;
 
+	// Getters and setters are generated using STS: Source > Generate Getters and Setters
 	public Integer getId(){
 	    return id;
 	}

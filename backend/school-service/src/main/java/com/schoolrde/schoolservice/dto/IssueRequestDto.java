@@ -12,6 +12,7 @@ public class IssueRequestDto{
 	private Date lastUpdated;
 	private Date resolvedAt;
 
+	// Getters and setters are generated using STS: Source > Generate Getters and Setters
 	public Integer getId(){
 	    return id;
 	}

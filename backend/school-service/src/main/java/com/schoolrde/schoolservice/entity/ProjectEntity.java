@@ -59,6 +59,7 @@ public class ProjectEntity{
     @JoinColumn(name = "project_id", referencedColumnName = "id", insertable = false, updatable = false)
     private List<TenderEntity> tenders;
 
+    // Getters and setters are generated using STS: Source > Generate Getters and Setters
     public Integer getId(){
         return id;
     }
