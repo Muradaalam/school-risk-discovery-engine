@@ -2,1012 +2,612 @@
 
 ## 1. Purpose
 
-The priority model determines the current inspection priority of a school
-based on the available public evidence associated with its current issues.
+The priority model determines which schools should be considered for further
+inspection based on the public reports that can be linked to them.
 
 The model is designed to be:
 
 - deterministic
 - explainable
 - evidence-driven
-- time-dependent
 - auditable
-- resistant to duplicate or dependent evidence
+- resistant to duplicate reports
 
-
-Every priority result must be explainable through the underlying:
+Every priority result should be traceable to the underlying:
 
     School
        ↓
-    Issue
+    Linked reports
        ↓
-    Event
-       ↓
-    Evidence
-       ↓
-    Document
-       ↓
-    Source
+    Original source URLs
 
+The score is intended for inspection screening. It does not prove that a
+school is unsafe.
 
 # 2. Priority Calculation Flow
 
 The priority calculation follows this pipeline:
 
-    Evidence
+    Public reports
         ↓
-    Events
+    School identification
         ↓
-    Issue State
+    Evidence linking and grouping
         ↓
-    Issue Priority
+    School priority score
         ↓
-    School Priority
+    Ranked inspection queue
 
+We first identify the school mentioned in a report. Curated records can be
+linked using school name and district, or through a unique incident-group
+link. Scraped articles can also be matched using the school name and location.
 
-Evidence is first associated with events and issues.
+Reports that cannot be linked unambiguously are kept for review.
 
-The current state of each issue is then determined from the available
-historical evidence.
-
-The priority of each current issue is calculated using the priority factors.
-
-The school's current priority is derived from its current issues.
-
-
+The score is calculated using the linked reports for each school.
 
 # 3. Important Design Principles
 
 ## 3.1 Deterministic Model
 
-The current version of the system calculates inspection priority using predefined rules and evidence-based factors. This provides a transparent and explainable baseline for evaluating school priority.
+The system calculates inspection priority using predefined rules. The same
+linked evidence produces the same score.
 
-The current implementation does not use a machine-learning model to directly predict inspection priority.
+The current priority calculation does not use a trained machine-learning
+model.
 
-As a planned extension, the system will support a machine-learning-based priority prediction model. A set of school-issue cases will be annotated with priority labels, relevant features will be extracted from the collected evidence, and classical machine-learning models will be trained to predict priority levels.
-
-The ML-based predictions will subsequently be compared with the deterministic priority results to evaluate differences in predictions, consistency, and performance. This will allow the system to retain an interpretable rule-based baseline while providing a path toward data-driven priority prediction.
-
-
-ML/NLP components will be used elsewhere in the pipeline for tasks such as:
-
-- entity matching
-- information extraction
-- issue classification
-- duplicate detection
-- claim extraction
-
-However, these components do not directly determine the final priority.
-
-
-## 3.2 Priority Is Time-Dependent
+## 3.2 Priority Can Change
 
 Priority is not a permanent property of a school.
 
-A school's priority may change when:
+The ranking is calculated using the reports available when the pipeline runs.
+New reports can change the number of incident groups, the serious-incident
+indicator, and the resulting rank.
 
-- new evidence is discovered
-- an issue is resolved
-- a repair progresses
-- a new issue appears
-- contradictory evidence appears
-- older evidence becomes stale
+The report date is also used when scores are tied.
 
-Historical priority snapshots must therefore be retained.
+## 3.3 Priority Is Calculated Per School
 
-
-## 3.3 Priority Is Issue-First
-
-Priority is calculated primarily at the issue level.
+The report queue calculates one score for each school with linked evidence.
 
 For example:
 
     School A
         |
-        +-- Roof damage       → HIGH
+        +-- Report 1: roof damage
         |
-        +-- Broken toilet     → LOW
+        +-- Report 2: follow-up on the same incident
         |
-        +-- Old boundary wall → MEDIUM
+        +-- Report 3: another incident
 
-The school's current priority is derived from its current issues.
+The reports are grouped before scoring, so two articles about the same
+incident do not automatically count as two incidents.
 
-The system does not simply add the scores of all historical issues.
+## 3.4 Historical Reports Remain Evidence
 
+Older reports are not discarded merely because newer reports appear.
 
-## 3.4 Historical Issues Do Not Permanently Increase Priority
+A report about a past repair does not, by itself, prove the school's current
+condition. The report queue therefore records:
 
-A school should not remain HIGH merely because it had serious problems
-in the past.
+    CURRENT_CONDITION_UNKNOWN
 
-For example:
+The score reflects linked public reports, not a confirmed current safety state.
 
-    2024  Roof damaged
-    2025  Repair completed
-    2026  Repair verified
+# 4. Priority Factors
 
-The historical issue remains visible in the timeline.
+Each school with linked reports receives a score using three parts:
 
-However, the resolved issue contributes no current priority unless newer
-evidence contradicts the resolution.
-
-
-# 4. Issue Priority Factors
-
-Each current issue receives a score using six factors:
-
-    1. Severity
-    2. Current Status
-    3. Recency
-    4. Independent Corroboration
-    5. Repair Lifecycle
-    6. Inspection Context
-
-
-Maximum score:
-
-    27
-
+    1. Base score
+    2. Number of incident groups
+    3. Serious-incident indicator
 
 The formula is:
 
-    Issue Priority Score =
-        Severity
-        + Current Status
-        + Recency
-        + Corroboration
-        + Repair Lifecycle
-        + Inspection Context
+    School Priority Score =
+        40
+        + 15 × min(Incident Groups, 3)
+        + 15 if serious incident terms are present
 
+The final score is capped at 100.
 
-# 5. Factor 1 — Severity
+# 5. Factor 1 — Base Score
 
-Severity represents the nature and potential significance of the issue.
+The base score is 40.
 
-It does NOT represent the number of reports about the issue.
+This is applied only after a school has at least one linked evidence report.
 
-| Severity | Meaning |
-|----------|---------|
-| 1        | Minor |
-| 2        | Moderate |
-| 3        | Significant |
-| 4        | Serious |
-| 5        | Critical |
+The code checks:
 
-Examples:
+    reports = list(evidence[key].values())
+    if not reports:
+        continue
 
-    Roof/building structural damage      → 4–5
-    Major building damage                → 4–5
-    Drinking water problem               → 3
-    Toilet/sanitation problem            → 3
-    Electricity problem                  → 3–4
-    Boundary wall damage                 → 2–3
-    Minor maintenance issue              → 1
+A school without linked evidence is excluded from the ranking. It does not
+receive a score of 40.
 
+# 6. Factor 2 — Incident Groups
 
-Severity must be assigned according to the issue type and documented
-characteristics.
+Incident groups represent reports associated with the same reported incident.
 
-A large number of reports cannot increase the inherent severity of an issue.
+The model counts distinct group identifiers, with a maximum contribution from
+three groups.
 
-
-# 6. Factor 2 — Current Status
-
-Current status represents the latest supported state of the issue.
-
-| Issue Status | Score |
-|--------------|------ |
-| VERIFIED     |   0   |
-| RESOLVED     |   0   |
-| UNDER_REPAIR |   2   |
-| UNKNOWN      |   3   |
-| CONFLICTED   |   3   |
-| ACTIVE       |   5   |
-
-### Important rules
-
-A VERIFIED or RESOLVED issue contributes zero current status points when
-there is no newer contradictory evidence.
-
-An UNDER_REPAIR issue remains relevant but receives less weight than an
-ACTIVE unresolved issue.
-
-UNKNOWN means that the available evidence does not establish the current
-state.
-
-CONFLICTED means that available evidence contains unresolved contradictions
-about the current state.
-
-# 7. Factor 3 — Recency
-
-Recency represents how recently the available evidence supports the current
-state of the issue.
-
-| Latest Relevant Evidence | Score |
-|--------------------------|-------|
-| ≤ 6 months               |   5   |
-| > 6 and ≤ 18 months      |   4   |
-| > 18 and ≤ 36 months     |   2   |
-| > 36 months              |   1   |
-
-The relevant date should normally be the date of the underlying event or
-observation.
-
-The system must distinguish:
-
-    event_date
-    published_at
-    retrieved_at
-    extracted_at
-
-These dates must not be substituted for one another.
-
-### Persistence rule
-
-Old evidence should not automatically make a currently persistent issue
-stale.
+| Distinct incident groups | Points added |
+|-------------------------|-------------:|
+| 1                       | 15           |
+| 2                       | 30           |
+| 3 or more               | 45           |
 
 For example:
 
-    2023  Roof damage reported
-    2026  Roof damage still reported
+    Article A → roof incident at School X
+    Article B → follow-up on the same incident
 
-The 2026 evidence establishes current persistence and therefore receives
-the appropriate recent-evidence score.
+If both use the same incident-group identifier, they contribute one group.
 
+When a curated incident group is unavailable, the source URL may be used as
+the group identifier. This avoids counting the same URL twice, but does not
+prove that articles at different URLs describe independent incidents.
 
-# 8. Factor 4 — Independent Corroboration
+# 7. Factor 3 — Serious Incident Terms
 
-Corroboration measures the number of genuinely independent observations
-supporting the current issue.
+The model adds 15 points when a linked report contains one of the configured
+serious-incident terms.
 
-| Independent supporting observations | Score |
-|-------------------------------------|-------|
-|                   0                 |   0   |
-|                   1                 |   2   |
-|                   2                 |   4   |
-|               3 or more             |   5   |
+Examples include words relating to:
 
-Only independent observations contribute to this factor.
+    building collapse
+    deaths
+    injuries
 
-The system must NOT count:
+The code checks English and Hindi terms in the linked report claims.
 
-- copied news articles
-- duplicate documents
-- syndicated reports
-- evidence derived from the same original report
-
-as independent observations.
+The additional 15 points are applied once per school, not once per article.
 
 For example:
 
-    Government inspection report
-    Independent complaint
-    Independent public report
+    One incident group, no serious term → 40 + 15 = 55
+    One incident group, serious term    → 40 + 15 + 15 = 70
 
-may represent three independent observations.
+The indicator is keyword-based and should not be treated as an independently
+verified severity assessment.
 
-However:
+# 8. School Identification
 
-    Original report
-    News article quoting original report
-    Another article copying the same report
+A report must be linked to a school before it can affect that school's score.
 
-may represent only one independent observation.
+The pipeline first builds a school registry from curated records containing a
+school name and district.
 
+Scraped reports can then be matched by:
 
-# 9. Factor 5 — Repair Lifecycle
+- a URL already present in the curated reports
+- an unambiguous school name and district already in the registry
+- an explicitly extracted school name and district
+- a previously approved manual match
 
-Repair lifecycle represents the available evidence about corrective action
-associated with the issue.
+For newly extracted school names, the article-matching code also checks for
+infrastructure-related terms. If the name or district is ambiguous, the report
+is left for review.
 
-| Repair State                                                    | Score |
-|-----------------------------------------------------------------|-------|
-| Verified completed                                              |   0   |
-| Work in progress                                                |   1   |
-| Recently proposed/awarded                                       |   2   |
-| Awarded but long overdue / no completion evidence               |   4   |
-| No repair response evidence where source coverage is sufficient |   5   |
+A recognized school identity is still provisional until separately verified.
 
-### Important rules
+# 9. Report Grouping and Duplicate Handling
 
-A tender being issued does not mean that repair has started.
+The model keeps evidence records by canonical source URL for each school.
 
-A tender being awarded does not mean that repair has been completed.
+The URL is normalized so that minor differences, including common tracking
+parameters, do not create extra copies of the same report.
 
-Completion requires separate supporting evidence.
+If a scraped article has a URL already present in curated evidence, it is not
+counted as another report.
 
-The system must also distinguish:
+Reports may also be assigned a common incident-group identifier.
 
-    No completion evidence found
+For example:
 
-from:
+    Original report  → Group A
+    Follow-up report → Group A
 
-    Repair was not completed
+The two URLs can remain visible as supporting references, while the group is
+counted once for the score.
 
+Different URLs without a shared group may still refer to the same event, so
+the incident count is based on available grouping information.
 
-A source retrieval failure must never be treated as evidence that no repair
-completion record exists.
+# 10. Evidence Dates and Recency
 
-# 10. Factor 6 — Inspection Context
+The report queue records the latest available evidence date for a school.
 
-Inspection context provides a small additional factor related to the
-availability and recency of public inspection information.
+Dates come from the available report information, such as event dates in the
+curated file or publication dates in scraped articles.
 
-| Inspection Context                                | Score |
-|---------------------------------------------------|-------|
-| Recent documented inspection addressing the issue |   0   |
-| Older documented inspection                       |   1   |
-| No recent public inspection record identified     |   2   |
+Recency does not add points to the 0–100 score.
 
-This factor is intentionally small.
+Instead, the latest evidence date is used to break ties between schools with
+the same score.
 
-The absence of a public inspection record does NOT mean that an inspection
-never occurred.
+For example:
 
-The system should use wording such as:
+    School A → Score 70, latest evidence in 2026
+    School B → Score 70, latest evidence in 2025
 
-    "No recent public inspection record was identified
-     in the searched sources."
+School A is ranked above School B.
 
-It must not state:
-
-    "The school has not been inspected."
+The underlying event date and publication date are not necessarily the same.
 
 # 11. Maximum Score
 
-The maximum possible issue score is:
+The highest score is:
 
-    Severity              5
-    Current Status        5
-    Recency               5
-    Corroboration         5
-    Repair Lifecycle      5
-    Inspection Context    2
-                        
-    Maximum              27
+    Base score                 40
+    Three incident groups      45
+    Serious incident terms     15
 
+    Maximum                   100
+
+The number of incident groups contributes at most 45 points, even if more
+than three groups are linked to a school.
 
 # 12. Priority Classification
 
-The initial priority thresholds are:
+The report queue uses these thresholds:
 
-| Score | Priority |
-|------:|----------|
-| 0–7   | LOW      |
-| 8–14  | MEDIUM   |
-| 15–27 | HIGH     |
+| Score    | Priority |
+|---------:|----------|
+| Below 60 | MEDIUM   |
+| 60–100   | HIGH     |
 
-These thresholds are the initial version of the model and may be calibrated
-after testing against real project data.
+Schools with no linked reports are not ranked.
 
-They should not be presented as universally optimal or scientifically
-validated thresholds.
+With the current formula, one incident group without a serious term receives
+55 (MEDIUM), and one group with a serious term receives 70 (HIGH).
 
+The report queue does not currently assign LOW to ranked candidates.
 
-# 13. HIGH Priority Severity Constraint
+# 13. HIGH Priority Rule
 
-A score of 15 or above is not sufficient by itself to produce HIGH priority.
-
-An issue must also have:
-
-    Severity >= 3
-
-to receive HIGH priority.
-
-Therefore:
-
-    Severity 1 or 2
-          ↓
-    Maximum priority = MEDIUM
-
-
-This prevents a minor issue from becoming HIGH merely because it has:
-
-- many reports
-- recent observations
-- multiple duplicate sources
-- a long repair history
-
-
-Example:
-
-    Severity = 1
-    Status = 5
-    Recency = 5
-    Corroboration = 5
-    Repair = 5
-    Inspection = 2
-
-    Raw score = 23
-
-The final priority is still:
-
-    MEDIUM
-
-because the underlying issue is minor.
-
-
-# 14. Hard Rules
-
-The following rules override or constrain the numerical score.
-
-## Rule 1 — Verified Resolution
-
-If an issue is VERIFIED or RESOLVED and there is no newer contradictory
-evidence:
-
-    Current priority contribution = 0
-
-
-The historical issue remains visible.
-
-
-## Rule 2 — Stale Evidence
-
-Old evidence alone cannot establish that an issue is currently unresolved.
-
-A serious issue supported only by old evidence may therefore receive
-MEDIUM rather than HIGH priority.
-
-
-## Rule 3 — Recent Persistence
-
-Recent evidence showing that an old issue is still present can restore
-current priority.
-
-Example:
-
-    2023 → Roof damage reported
-    2026 → Roof damage still reported
-
-The 2026 evidence is used for current priority calculation.
-
-
-## Rule 4 — Evidence Independence
-
-Duplicate or derived evidence must not increase independent corroboration.
-
-Evidence relationships must be represented explicitly through
-EvidenceRelation.
-
-
-## Rule 5 — Contradictory Evidence
-
-Contradictory evidence must be preserved.
-
-The system must not silently select one source as correct.
-
-An issue may therefore receive:
-
-    CONFLICTED
-
-status.
-
-Conflicting evidence may justify further verification.
-
-
-## Rule 6 — Retrieval Failure
-
-A failed scraper or unavailable source must not be interpreted as
-absence of evidence.
-
-For example:
-
-    SourceRetrieval = FAILED
-
-does NOT mean:
-
-    No repair evidence exists.
-
-
-## Rule 7 — Missing Public Inspection Record
-
-No public inspection record must never be interpreted as proof that no
-inspection occurred.
-
-
-## Rule 8 — Evidence Coverage
-
-Evidence coverage must remain separate from priority.
-
-Low evidence coverage does not automatically reduce priority.
-
-High evidence coverage does not automatically increase priority.
-
-
-## Rule 9 — Scope of Evidence
-
-Only evidence that can be reliably associated with a school should directly
-contribute to that school's priority.
-
-Evidence at:
-
-    SCHOOL_LEVEL
-
-may directly contribute.
-
-Evidence at:
-
-    BLOCK_LEVEL
-    DISTRICT_LEVEL
-    STATE_LEVEL
-
-may be retained as contextual information but should not automatically
-increase an individual school's priority.
-
-# 15. School-Level Priority
-
-A school may have multiple active issues at the same time.
-
-For example:
-
-School A
-
-Roof damage          → MEDIUM
-Drinking water       → MEDIUM
-Electricity          → MEDIUM
-Boundary wall        → LOW
-
-The school-level priority should therefore not be determined simply by taking the highest individual issue priority.
-
-Multiple concurrent issues may indicate a broader problem at the school level. The system will therefore analyze the combined issue profile of each school.
-
-The analysis may consider factors such as:
-
-individual issue scores
-number of active issues
-severity of issues
-recency of evidence
-independent supporting evidence
-recurrence of issues
-repair or resolution status
-evidence coverage
-combinations of different issue types
-
-The system will analyze the collected dataset to determine how these factors and combinations of issues relate to the overall school-level priority. The aggregation approach and its thresholds will be determined based on this analysis rather than by assuming a fixed rule such as "two MEDIUM issues automatically become HIGH."
-
-The objective is to ensure that:
-
-multiple substantial issues can collectively increase school priority;
-numerous minor issues do not automatically result in HIGH priority;
-the reasoning behind the school-level priority remains explainable.
-
-The resulting school-level priority will be supported by the underlying issues and evidence so that users can understand why the school received that priority.
-
-As a later extension, a machine-learning-based priority model may be developed using the collected and labeled data. Its predictions can then be compared with the school-level priorities obtained from the initial data-driven aggregation approach.
-
-# 16. Priority Explanation
-
-Every priority result must be explainable.
-
-For example:
-
-    HIGH — Issue Priority Score: 21/27
-
-    Primary issue:
-        Roof damage
-
-    Contributing factors:
-        Severity:             5/5
-        Current status:       5/5
-        Recency:              5/5
-        Corroboration:        2/5
-        Repair lifecycle:     3/5
-        Inspection context:   1/2
-
-    Supporting evidence:
-        - Government record
-        - Public complaint
-        - Repair/tender record
-
-    Explanation:
-        Recent evidence indicates a serious unresolved roof issue.
-        Independent public records support the issue, while available
-        repair information does not establish verified completion.
-
-
-The user should be able to navigate from the priority result to the
-underlying evidence and original sources.
-
-
-# 17. Evidence Coverage
-
-Evidence coverage is stored separately from priority.
-
-Possible values:
-
-    LOW
-    MEDIUM
-    HIGH
-
-
-Evidence coverage describes how much relevant public information was
-available to the system.
-
-It does NOT describe the actual physical condition of the school.
-
-Example:
-
-    School A
-        HIGH evidence coverage
-        Multiple recent records
-
-    School B
-        LOW evidence coverage
-        Very little public information
-
-
-The system must NOT conclude:
-
-    School B is safer.
-
-
-Low information availability may simply mean that the public record is
-limited.
-
-
-# 18. Example Calculations
-
-## Example A — Recent Serious Roof Damage
-
-    Severity             = 5
-    Current Status       = 5
-    Recency              = 5
-    Corroboration        = 2
-    Repair Lifecycle     = 4
-    Inspection Context   = 1
-
-    Total = 22
-
-    Priority = HIGH
-
-
-Reason:
-
-Recent evidence indicates a serious unresolved issue with supporting
-evidence and incomplete/overdue repair information.
-
-
-## Example B — Serious Issue Verified Repaired
-
-    Severity             = 5
-    Current Status       = 0
-    Recency              = 5
-    ...
-
-However:
-
-    VERIFIED + no newer contradictory evidence
-            ↓
-    Current priority contribution = 0
-
-    Priority = LOW
-
-
-The historical issue remains available in the timeline.
-
-## Example C — Old Serious Issue
-
-    Severity             = 5
-    Current Status       = 5
-    Recency              = 1
-    Corroboration        = 0
-    Repair Lifecycle     = 0
-    Inspection Context   = 1
-
-    Total = 12
-
-    Priority = MEDIUM
-
-
-Reason:
-
-The historical issue is serious, but there is insufficient recent evidence
-to establish that it remains unresolved.
-
-## Example D — Minor Issue With Many Reports
-
-    Severity             = 1
-    Current Status       = 5
-    Recency              = 5
-    Corroboration        = 5
-    Repair Lifecycle     = 5
-    Inspection Context   = 2
-
-    Raw Total = 23
-
-But:
-
-    Severity < 3
-
-Therefore:
-
-    Final Priority = MEDIUM
-
-
-The issue cannot become HIGH solely because of the amount of evidence.
-
-## Example E — Moderate Issue Under Repair
-
-    Severity             = 3
-    Current Status       = 2
-    Recency              = 5
-    Corroboration        = 2
-    Repair Lifecycle     = 1
-    Inspection Context   = 1
-
-    Total = 14
-
-    Priority = MEDIUM
-
-
-The issue is current and significant, but corrective action is underway.
-
-## Example F — Old Issue With Recent Persistence Evidence
-
-    Severity             = 5
-    Current Status       = 5
-    Recency              = 5
-    Corroboration        = 4
-    Repair Lifecycle     = 2
-    Inspection Context   = 1
-
-    Total = 22
-
-    Priority = HIGH
-
-
-The original issue is old, but recent evidence establishes persistence.
-
-
-## Example G — Conflicting Recent Records
-
-Example:
-
-    Record A:
-        Repair completed
-
-    Record B:
-        Roof still leaking
-
-
-The records are preserved separately.
-
-The issue may be marked:
-
-    CONFLICTED
-
-
-Possible calculation:
-
-    Severity             = 5
-    Current Status       = 3
-    Recency              = 5
-    Corroboration        = 2
-    Repair Lifecycle     = 2
-    Inspection Context   = 1
-
-    Total = 18
-
-    Priority = HIGH
-
-
-The explanation should explicitly state:
-
-    "Conflicting recent public records were identified.
-     Further verification may be warranted."
-
-
-# 19. Source Failure Example
-
-Suppose the Rajasthan eProcurement scraper fails.
-
-The system records:
-
-    SourceRetrieval
-        status = FAILED
-
-
-No repair completion information should be inferred from this failure.
-
-The system must NOT convert:
-
-    FAILED
-
-into:
-
-    "No repair completion evidence exists."
-
-
-This distinction is essential for preventing false conclusions.
-
-# 20. Duplicate Evidence Example
-
-Suppose an original government report is reproduced by five news websites.
-
-The system may contain:
-
-    Document A → Original report
-    Document B → News article
-    Document C → News article
-    Document D → News article
-    Document E → News article
-
-
-If B–E are derived from A:
-
-    A = independent observation
-
-    B–E = derived/duplicate evidence
-
-
-Therefore the system must not treat five documents as five independent
-observations.
-
-EvidenceRelation should represent the relationships.
-
-# 21. Priority Snapshot
-
-Each calculated priority should be stored as a PrioritySnapshot.
-
-A snapshot contains:
-
-    priority_id
-    school_id
-    priority_level
-    calculated_at
-    reason_summary
-    evidence_coverage
-
-
-Priority snapshots allow the system to preserve changes over time.
-
-Example:
-
-    2025-01-10 → MEDIUM
-    2025-06-20 → HIGH
-    2026-01-15 → LOW
-
-
-The historical snapshots explain how the school's priority changed as
-new evidence appeared or issues were resolved.
-
-# 22. Priority Recalculation
-
-Priority should be recalculated when material evidence changes.
+A school receives HIGH priority when its calculated score is 60 or above.
 
 Examples:
 
-- new issue evidence is discovered
-- new inspection record is discovered
-- repair status changes
-- new corroborating evidence is linked
-- contradictory evidence is discovered
-- issue is verified as resolved
-- recent persistence evidence is discovered
+    1 incident group + serious terms → 70 → HIGH
+    2 incident groups, no serious terms → 70 → HIGH
 
-The calculation should use the latest available evidence while retaining
-previous PrioritySnapshot records.
+HIGH means the reported evidence meets our screening threshold. It does not
+mean the school's present condition has been verified as dangerous.
+
+# 14. Hard Rules
+
+These rules are applied when building the report-based queue.
+
+## Rule 1 — Linked Evidence Required
+
+A school without linked reports is not scored.
+
+## Rule 2 — Valid Source Reference
+
+Evidence without a valid HTTPS source URL is not added to the report queue.
+
+## Rule 3 — Unambiguous School Association
+
+Reports that cannot be linked to a single school are kept in the review file.
+The system should not assign a report to a school by guessing.
+
+## Rule 4 — Provisional Identity
+
+A school identified from a public report remains unverified unless additional
+identity evidence becomes available.
+
+## Rule 5 — Duplicate URLs
+
+A report URL is counted once per school. The same article appearing in the
+curated and scraped inputs does not become two reports.
+
+## Rule 6 — Incident Grouping
+
+Reports sharing an incident-group identifier contribute one group to the
+scoring formula.
+
+## Rule 7 — Serious Incident Indicator
+
+Serious-incident terms contribute 15 points at most once per school.
+
+## Rule 8 — Current Condition
+
+The report queue uses CURRENT_CONDITION_UNKNOWN. A news report does not, by
+itself, establish whether an issue is currently active or resolved.
+
+## Rule 9 — Failed Retrieval
+
+A failed article request is not interpreted as proof that no issue exists.
+The collector keeps counts of article and feed errors separately from the
+successfully collected reports.
+
+# 15. School-Level Priority
+
+The report queue produces one ranking entry per school with linked evidence.
+
+For example:
+
+    School A
+        |
+        +-- Incident Group 1
+        +-- Incident Group 2
+        +-- Serious terms found
+
+    Score = 40 + 15 × 2 + 15 = 85
+    Priority = HIGH
+
+Schools are ordered by:
+
+    1. Priority score, descending
+    2. Latest evidence date, descending
+    3. Generated school entity ID, ascending
+
+The Top-50 file contains the first 50 ranked schools, or fewer when fewer
+schools have qualifying linked evidence.
+
+# 16. Priority Explanation
+
+Every priority result includes a human-readable explanation.
+
+For example:
+
+    HIGH — School Priority Score: 70/100
+
+    Incident groups:         1
+    Linked source URLs:      2
+    Serious terms:           Present
+    Current issue state:     CURRENT_CONDITION_UNKNOWN
+
+    Supporting evidence:
+        - Public report URL 1
+        - Public report URL 2
+
+    Explanation:
+        One reported incident group is linked to two source URLs.
+        Serious incident terms were found in the reported claims.
+        The school's identity and present condition are not independently
+        verified.
+
+The ranking output also contains the evidence references so the supporting
+articles can be checked.
+
+# 17. Evidence Coverage
+
+Evidence coverage and priority are different concepts.
+
+The report queue records:
+
+    incident_groups
+    evidence_events
+    evidence_references
+
+These fields describe how many groups and linked source URLs were found.
+
+They do not prove that all available public evidence has been collected.
+
+A school with few public reports should not automatically be described as
+safe. A school with many reports should not automatically be described as
+unsafe.
+
+# 18. Example Calculations
+
+## Example A — One Reported Incident
+
+    Base score                = 40
+    Incident groups          = 1 × 15
+    Serious terms            = 0
+
+    Total = 55
+    Priority = MEDIUM
+
+## Example B — One Serious Incident
+
+    Base score                = 40
+    Incident groups          = 1 × 15
+    Serious terms            = 15
+
+    Total = 70
+    Priority = HIGH
+
+## Example C — Two Reported Incidents
+
+    Base score                = 40
+    Incident groups          = 2 × 15
+    Serious terms            = 0
+
+    Total = 70
+    Priority = HIGH
+
+## Example D — Two Serious Incident Groups
+
+    Base score                = 40
+    Incident groups          = 2 × 15
+    Serious terms            = 15
+
+    Total = 85
+    Priority = HIGH
+
+## Example E — Three Incident Groups With Serious Terms
+
+    Base score                = 40
+    Incident groups          = 3 × 15
+    Serious terms            = 15
+
+    Total = 100
+    Priority = HIGH
+
+## Example F — Duplicate Articles About One Incident
+
+    Article A → Group 1
+    Article B → Group 1
+
+    Distinct incident groups = 1
+    Serious terms            = 0
+
+    Total = 55
+    Priority = MEDIUM
+
+Two URLs may provide references to the same group, but the group is counted
+once in the scoring formula.
+
+## Example G — No Linked Evidence
+
+    Linked evidence reports = 0
+
+The school is skipped before scoring.
+
+    No priority score assigned
+    Not included in the queue
+
+# 19. Source Failure Example
+
+Suppose an Akashvani or PIB article request fails.
+
+The collector records an article error instead of creating an evidence record
+for that request.
+
+The system must not convert:
+
+    Article retrieval failed
+
+into:
+
+    No infrastructure problem exists.
+
+Only successfully collected or curated reports can be linked and ranked.
+
+# 20. Duplicate Evidence Example
+
+Suppose the same public report appears in the curated CSV and the scraped
+article output.
+
+The report queue uses its canonical URL to avoid counting the same article
+twice for the same school.
+
+If two different URLs are known to describe the same incident, they can share
+an incident-group identifier.
+
+For example:
+
+    Article A → Group 1
+    Article B → Group 1
+
+They contribute one incident group to the score.
+
+A shared group prevents inflation of the incident-group count. It does not
+establish whether two sources are genuinely independent observations.
+
+# 21. Priority Storage
+
+The report ranking is written to:
+
+    data_pipeline/raw/report_school_priorities.csv
+    data_pipeline/raw/report_top50.csv
+
+The current recommendations can also be imported into MySQL in the table:
+
+    srde_report_priorities
+
+Each row stores the school reference, rank, score, priority level, evidence
+references, explanation, and the calculation timestamp.
+
+The importer updates existing candidate records when the ranking is imported
+again. This table stores the current imported ranking, not a separate
+historical snapshot for every run.
+
+# 22. Priority Recalculation
+
+Priority is recalculated when the report-ranking pipeline is run again with
+its current inputs.
+
+For example:
+
+- a newly supplied article is linked to a school
+- another report adds an incident group
+- a serious-incident term is found in a linked report
+- a report is associated with a different school after review
+
+The updated ranked CSV can then be imported into MySQL.
 
 # 23. Acceptance Tests
 
-The implementation must satisfy the following tests.
+The ranking rules can be checked with the following cases.
 
-### Test 1 — Recent serious unresolved issue
-
-Expected:
-
-    HIGH
-
-
-### Test 2 — Serious issue verified repaired
+### Test 1 — No linked evidence
 
 Expected:
 
-    LOW current priority
+    School is excluded from ranking.
 
-Historical record remains.
-
-
-### Test 3 — Old serious issue without recent confirmation
+### Test 2 — One incident group
 
 Expected:
 
-    Not automatically HIGH
+    Score = 55, MEDIUM.
 
-
-### Test 4 — Minor issue with many reports
-
-Expected:
-
-    Never HIGH
-
-
-### Test 5 — Duplicate reports
+### Test 3 — One serious incident group
 
 Expected:
 
-    Do not increase independent corroboration
+    Score = 70, HIGH.
 
-
-### Test 6 — Independent evidence
-
-Expected:
-
-    Independent observations increase corroboration
-
-
-### Test 7 — Conflicting evidence
+### Test 4 — Two incident groups without serious terms
 
 Expected:
 
-    Evidence preserved
-    Issue may become CONFLICTED
-    Explanation mentions conflict
+    Score = 70, HIGH.
 
-
-### Test 8 — Failed scraper
+### Test 5 — Three serious incident groups
 
 Expected:
 
-    No evidence-of-absence conclusion
+    Score = 100, HIGH.
 
-
-### Test 9 — Recent persistence of old issue
-
-Expected:
-
-    Recent evidence affects current priority
-
-
-### Test 10 — Resolved historical issues
+### Test 6 — More than three incident groups
 
 Expected:
 
-    Historical issues remain visible
-    Current priority is not permanently increased
+    Incident-group contribution remains capped at 45.
 
-
-### Test 11 — No public inspection record
+### Test 7 — Duplicate source URL
 
 Expected:
 
-    May contribute inspection-context points
+    Same URL does not produce another evidence event for that school.
 
-But the system must NOT state:
-
-    "No inspection occurred."
-
-
-### Test 12 — Low evidence coverage
+### Test 8 — Two URLs in the same incident group
 
 Expected:
 
-    Does not automatically reduce priority
+    One incident group contributes to the score.
 
-
-### Test 13 — High evidence coverage
-
-Expected:
-
-    Does not automatically increase priority
-
-
-### Test 14 — School with multiple issues
+### Test 9 — Ambiguous school name
 
 Expected:
 
-    Highest current issue determines primary school priority
+    Unresolved report is recorded for review.
 
-The system should not simply sum all issue scores.
-
-
-### Test 15 — Retrieval failure
+### Test 10 — School name and district missing
 
 Expected:
 
-    FAILED source retrieval is not treated as absence of evidence.
+    A new school is not created by guessing.
+
+### Test 11 — Equal scores
+
+Expected:
+
+    Latest evidence date breaks the tie.
+
+### Test 12 — Ranking output
+
+Expected:
+
+    Up to 50 schools appear in the Top-50 CSV, ordered by rank.
 
 # 24. Model Limitations
 
@@ -1035,48 +635,35 @@ It should not be interpreted as:
 
 # 25. Initial Model Status
 
-This priority model is the initial version (v1).
+The current report-ranking model uses a 0–100 score based on the linked
+incident groups and serious-incident terms.
 
-The thresholds and factor weights are design parameters rather than
-universally validated values.
+The thresholds and factor values are design choices and have not been
+scientifically validated as measurements of physical risk.
 
-After implementation, the model should be tested against real data from
-the selected Rajasthan sources.
-
-Any later adjustment should be documented as model calibration rather than
-silently changing the rules.
+The model is intended to produce an explainable inspection screening queue
+from the public reports available to the system.
 
 # 26. Final Formula
 
-For a current issue:
+For a school with at least one linked evidence report:
 
-    Issue Priority Score =
-        Severity
-        + Current Status
-        + Recency
-        + Independent Corroboration
-        + Repair Lifecycle
-        + Inspection Context
+    School Priority Score =
+        min(100, 40 + 15 × min(Incident Groups, 3)
+                  + (15 if serious terms are present else 0))
 
-
-Maximum: 27
-
+    Maximum: 100
 
 Classification:
+    score <50   → Low
+    50 < Score < 60  → MEDIUM
+    Score >= 60 → HIGH 
 
-    0–7     → LOW
-    8–14    → MEDIUM
-    15–27   → HIGH
+A school with no linked evidence is not scored.
 
-
-Additional constraint:
-
-    HIGH requires Severity >= 3
-
-
-The final priority must always remain:
+The output remains:
 
     explainable
     traceable
-    time-dependent
     evidence-based
+    specific to the reports collected
