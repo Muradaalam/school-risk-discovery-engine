@@ -12,6 +12,7 @@ import { demoSchools } from '../data/demoSchools'
 
 
 function Dashboard({ schools = demoSchools }) {
+  const isBackendData = schools !== demoSchools
   const stats = [
   {
     title: 'Total Schools',
@@ -22,21 +23,27 @@ function Dashboard({ schools = demoSchools }) {
   },
   {
     title: 'High Priority',
-    value: schools.filter((school) => school.priority === 'High').length,
+    value: isBackendData
+  ? 'N/A'
+  : schools.filter((school) => school.priority === 'High').length,
     description: 'Priority for inspection',
     icon: TriangleAlert,
     color: 'red',
   },
   {
     title: 'Medium Priority',
-    value: schools.filter((school) => school.priority === 'Medium').length,
+    value: isBackendData
+  ? 'N/A'
+  : schools.filter((school) => school.priority === 'Medium').length,
     description: 'Priority for inspection',
     icon: CircleAlert,
     color: 'orange',
   },
   {
     title: 'Low Priority',
-    value: schools.filter((school) => school.priority === 'Low').length,
+    value: isBackendData
+  ? 'N/A'
+  : schools.filter((school) => school.priority === 'Low').length,
     description: 'Priority for inspection',
     icon: CircleCheck,
     color: 'green',
@@ -47,9 +54,11 @@ function Dashboard({ schools = demoSchools }) {
       <div className="dashboard-heading">
         <h1>Dashboard Overview</h1>
         <p>School Evidence & Inspection Priority System</p>
-        <p className="dashboard-demo-note">
-          Statistics are based on demonstration data.
-        </p>
+       <p className="dashboard-demo-note">
+  {isBackendData
+    ? 'Showing 3 verified school records fetched from the backend. Priority categories are not yet available.'
+    : 'Statistics are based on demonstration data.'}
+</p>
       </div>
 
       <div className="stats-grid">

@@ -4,7 +4,7 @@ export function normalizeSchool(school) {
     name: school.schoolName ?? school.name,
     udise: school.udiseCode ?? school.udise,
     district: school.district,
-    priority: school.priority ?? 'Not Assessed',
+    priority: school.priority ?? (school.schoolName ? 'Unknown' : 'Not Assessed'),
     evidenceCount: school.evidenceCount ?? 'Not available',
   }
 }

@@ -17,10 +17,29 @@ import 'leaflet/dist/leaflet.css'
 import './Map.css'
 
 
-function Map() {
+function Map({ schools = demoSchools }) {
+  const isBackendData = schools !== demoSchools
   const [priorityFilter, setPriorityFilter] = useState('All')
 
-  const filteredSchools = demoSchools.filter((school) => {
+const filteredSchools = schools
+  .filter((school) => {
+    if (school.position) return true
+
+    return (
+      school.latitude != null &&
+      school.longitude != null &&
+      Number.isFinite(Number(school.latitude)) &&
+      Number.isFinite(Number(school.longitude))
+    )
+  })
+  .map((school) => ({
+    ...school,
+    position: school.position ?? [
+      Number(school.latitude),
+      Number(school.longitude),
+    ],
+  }))
+  .filter((school) => {
     return (
       priorityFilter === 'All' ||
       school.priority === priorityFilter
@@ -41,9 +60,9 @@ function Map() {
         <div className="map-card-header">
           <div>
           <h2>School Locations</h2>
-          <span className="map-demo-label">
-            Demo Locations
-          </span>
+<span className="map-demo-label">
+  {isBackendData ? 'Backend Data' : 'Demo Locations'}
+</span>
          </div>
 
          <select
@@ -62,7 +81,18 @@ function Map() {
          </select>
         </div>
 
-
+{isBackendData && filteredSchools.length === 0 && (
+  <p style={{
+    padding: '14px',
+    color: '#64748b',
+    backgroundColor: '#f1f5f9',
+    borderRadius: '8px',
+    marginBottom: '16px',
+  }}>
+    No school locations available. The backend records do not
+    currently contain latitude and longitude coordinates.
+  </p>
+)}
         <MapContainer
           center={[26.2, 74.5]}
           zoom={7}

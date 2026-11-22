@@ -22,5 +22,11 @@ export async function getSchoolById(id, token) {
     token
   )
 }
+export async function getKnownSchools(token) {
+  const schoolIds = [1000000, 1000001, 1000002]
 
+  return Promise.all(
+    schoolIds.map((id) => getSchoolById(id, token))
+  )
+}
 

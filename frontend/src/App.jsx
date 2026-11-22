@@ -11,10 +11,28 @@ import Analytics from './pages/Analytics'
 // import Loading from './components/Loading'
 // import ErrorMessage from './components/ErrorMessage'
 import BackendSchoolTest from './pages/BackendSchoolTest'
+import { getKnownSchools } from './services/api'
 
 function App() {
   const [activePage, setActivePage] = useState('Dashboard')
   const [selectedSchool, setSelectedSchool] = useState(null)
+  const [realSchools, setRealSchools] = useState(null)
+  const [schoolsLoading, setSchoolsLoading] = useState(false)
+  const [schoolsError, setSchoolsError] = useState('')
+  const [schoolToken, setSchoolToken] = useState('')
+  async function loadRealSchools(token) {
+  setSchoolsLoading(true)
+  setSchoolsError('')
+
+  try {
+    const schools = await getKnownSchools(token)
+    setRealSchools(schools)
+  } catch (error) {
+    setSchoolsError(error.message)
+  } finally {
+    setSchoolsLoading(false)
+  }
+}
 
   function handlePageChange(page) {
     setActivePage(page)
@@ -36,7 +54,12 @@ function App() {
       case 'BackendSchoolTest':
   return <BackendSchoolTest />
       case 'Schools':
-        return <Schools onSchoolSelect={handleSchoolSelect} />
+  return (
+    <Schools
+      schools={realSchools ?? undefined}
+      onSchoolSelect={handleSchoolSelect}
+    />
+  )
 
       case 'SchoolDetails':
         return (
@@ -45,14 +68,14 @@ function App() {
             onBack={handleBackToSchools}
           />
         )
-      case 'Map':
-        return <Map />
+case 'Map':
+  return <Map schools={realSchools ?? undefined} />
       
-      case 'Analytics':
-        return <Analytics />
+case 'Analytics':
+  return <Analytics schools={realSchools ?? undefined} />
       case 'Dashboard':
-      default:
-        return <Dashboard />
+default:
+  return <Dashboard schools={realSchools ?? undefined} />
       
     }
   }
@@ -71,9 +94,40 @@ function App() {
       <div className="main-area">
         <Navbar />
 
-        <main className="main-content">
-          {renderPage()}
-        </main>
+<main className="main-content">
+  <form
+    onSubmit={(event) => {
+      event.preventDefault()
+      loadRealSchools(schoolToken.trim())
+    }}
+    style={{
+      display: 'flex',
+      gap: '10px',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      marginBottom: '20px',
+    }}
+  >
+    <input
+      type="password"
+      placeholder="Enter fresh backend JWT"
+      value={schoolToken}
+      onChange={(event) => setSchoolToken(event.target.value)}
+      autoComplete="off"
+      required
+      style={{ padding: '10px', minWidth: '250px' }}
+    />
+
+    <button type="submit" disabled={schoolsLoading}>
+      {schoolsLoading ? 'Loading...' : 'Load Real Schools'}
+    </button>
+
+    {realSchools && <span>Loaded {realSchools.length} real schools</span>}
+    {schoolsError && <p role="alert">{schoolsError}</p>}
+  </form>
+
+  {renderPage()}
+</main>
       </div>
     </div>
   )

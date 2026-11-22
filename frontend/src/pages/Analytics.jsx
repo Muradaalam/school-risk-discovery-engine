@@ -17,20 +17,26 @@ import './Analytics.css'
 import { demoSchools, priorityColors } from '../data/demoSchools'
 
 
-const priorityData = [
-  'High',
-  'Medium',
-  'Low',
-  'Not Assessed',
-].map((priority) => ({
-  name: priority,
-  count: demoSchools.filter(
-    (school) => school.priority === priority
-  ).length,
-  color: priorityColors[priority],
-}))
 
-function Analytics() {
+
+function Analytics({ schools = demoSchools }) {
+  const isBackendData = schools !== demoSchools
+
+  const priorityData = [
+    'High',
+    'Medium',
+    'Low',
+    'Not Assessed',
+    ...(isBackendData ? ['Unknown'] : []),
+  ].map((priority) => ({
+    name: priority,
+    count: schools.filter(
+      (school) =>
+        (school.priority ??
+          (school.schoolName ? 'Unknown' : 'Not Assessed')) === priority
+    ).length,
+    color: priorityColors[priority] ?? '#64748b',
+  }))
   const totalSchools = priorityData.reduce(
     (total, item) => total + item.count,
     0
@@ -40,10 +46,11 @@ function Analytics() {
     <div className="analytics-page">
       <div className="analytics-header">
         <h1>School Analytics</h1>
-        <p>
-          Overview of school inspection priorities.
-          All values shown are demo data.
-        </p>
+<p>
+  {isBackendData
+    ? 'Analytics based on 3 school records fetched from the backend. Priority categories are not yet mapped.'
+    : 'Overview of school inspection priorities. All values shown are demo data.'}
+</p>
       </div>
 
       <div className="analytics-summary">
