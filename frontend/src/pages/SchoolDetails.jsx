@@ -7,6 +7,17 @@ import { demoEvidence } from '../data/demoEvidence'
 function SchoolDetails({ school, onBack }) {
 
   const isBackendSchool = Boolean(school?.schoolName)
+  const backendIssues = isBackendSchool && Array.isArray(school.issues)
+  ? school.issues
+  : []
+
+const backendInspections = isBackendSchool && Array.isArray(school.inspections)
+  ? school.inspections
+  : []
+
+const backendEvents = isBackendSchool && Array.isArray(school.events)
+  ? school.events
+  : []
 
 const evidence =
   school && !isBackendSchool
@@ -69,7 +80,82 @@ const evidence =
         </div>
       </div>
 
-      
+{isBackendSchool && (
+  <div className="school-evidence-section">
+    <div className="evidence-heading">
+      <h2>Reported School Issues</h2>
+      <span className="demo-label">Backend Data</span>
+    </div>
+
+    {backendIssues.length > 0 ? (
+      <div className="evidence-timeline">
+        {backendIssues.map((issue) => (
+          <div className="evidence-item" key={issue.id}>
+            <div className="evidence-dot"></div>
+
+            <div className="evidence-content">
+              <span className="evidence-date">
+                {issue.firstDetected ?? 'Date unavailable'}
+              </span>
+
+              <h3>{issue.issueType ?? 'School Issue'}</h3>
+
+              <p>
+                {issue.issueTypeDescription ??
+                  'No description available'}
+              </p>
+
+              <div className="evidence-source">
+                Status: {issue.status ?? 'Unknown'}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p>No issue records returned for this school.</p>
+    )}
+  </div>
+)}
+
+{isBackendSchool && (
+  <div className="school-evidence-section">
+    <div className="evidence-heading">
+      <h2>Inspection History</h2>
+      <span className="demo-label">Backend Data</span>
+    </div>
+
+    {backendInspections.length > 0 ? (
+      <div className="evidence-timeline">
+        {backendInspections.map((inspection) => (
+          <div className="evidence-item" key={inspection.id}>
+            <div className="evidence-dot"></div>
+
+            <div className="evidence-content">
+              <span className="evidence-date">
+                {inspection.inspectionDate ?? 'Date unavailable'}
+              </span>
+
+              <h3>
+                {inspection.inspectionType ?? 'School Inspection'}
+              </h3>
+
+              <p>
+                {inspection.remarks ?? 'No remarks available'}
+              </p>
+
+              <div className="evidence-source">
+                Inspector: {inspection.inspectorName ?? 'Not available'}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p>No inspection records returned for this school.</p>
+    )}
+  </div>
+)}
 <div className="school-evidence-section">
   <div className="evidence-heading">
     <h2>Evidence Timeline</h2>
