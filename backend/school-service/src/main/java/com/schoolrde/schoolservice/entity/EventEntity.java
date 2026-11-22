@@ -26,7 +26,7 @@ public class EventEntity{
 	private Integer schoolId;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "event_type_id", nullable = false)
+	@JoinColumn(name = "event_type_id", referencedColumnName = "id", nullable = false)
 	private EventType eventType;
 
 	@Column(name = "detailed_description", length = 150)

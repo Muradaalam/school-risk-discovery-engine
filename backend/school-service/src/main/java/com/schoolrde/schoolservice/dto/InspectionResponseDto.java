@@ -1,6 +1,7 @@
 package com.schoolrde.schoolservice.dto;
 
 import java.sql.Date;
+import java.util.List;
 
 public class InspectionResponseDto{
 
@@ -9,6 +10,8 @@ public class InspectionResponseDto{
     private String inspectionType;
     private String remarks;
     private String inspectorName;
+    private List<DocumentResponseDto> inspectionDocuments;
+
     
 	// Getters and setters are generated using STS: Source > Generate Getters and Setters
     public Integer getId(){
@@ -50,4 +53,14 @@ public class InspectionResponseDto{
 	public void setInspectorName(String inspectorName){
 		this.inspectorName = inspectorName;
 	}
+	
+	public List<DocumentResponseDto> getInspectionDocuments(){
+	    return inspectionDocuments;
+	}
+
+	public void setInspectionDocuments(List<DocumentResponseDto> inspectionDocuments){
+	    this.inspectionDocuments = inspectionDocuments;
+	}
+
+
 }

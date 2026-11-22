@@ -8,35 +8,37 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.schoolrde.schoolservice.dao.bussiness.IssueDao;
-import com.schoolrde.schoolservice.dao.bussiness.ProjectDao;
+import com.schoolrde.schoolservice.dao.repository.IssueStatusRepository;
+import com.schoolrde.schoolservice.dao.repository.IssueTypeRepository;
+import com.schoolrde.schoolservice.dto.DocumentResponseDto;
 import com.schoolrde.schoolservice.dto.IssueRequestDto;
 import com.schoolrde.schoolservice.dto.IssueResponseDto;
 import com.schoolrde.schoolservice.dto.ProjectResponseDto;
 import com.schoolrde.schoolservice.entity.IssueEntity;
+import com.schoolrde.schoolservice.entity.IssueStatus;
 import com.schoolrde.schoolservice.entity.IssueType;
 import com.schoolrde.schoolservice.entity.ProjectEntity;
 import com.schoolrde.schoolservice.exception.CustomException;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 
 
 @Service
 public class IssueService{
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(IssueService.class);
+	
+	public static final Integer CATEGORY_ISSUE = 2;
 
 	private final IssueDao issueDao;
-	private final ProjectDao projectDao;
+	private final DocumentService documentService;
+	private final IssueTypeRepository issueTypeRepository;
+	private final IssueStatusRepository issueStatusRepository;
 
-	public IssueService(IssueDao issueDao, ProjectDao projectDao){
+	public IssueService(IssueDao issueDao, DocumentService documentService, IssueTypeRepository issueTypeRepository, IssueStatusRepository issueStatusRepository){
 	    this.issueDao = issueDao;
-	    this.projectDao = projectDao;
+	    this.documentService = documentService;
+	    this.issueTypeRepository = issueTypeRepository;
+	    this.issueStatusRepository = issueStatusRepository;
 	}
-
-	@PersistenceContext
-	private EntityManager entityManager;
-
 	
 	public List<IssueResponseDto> getIssueBySchoolId(Integer schoolId){
 
@@ -78,9 +80,20 @@ public class IssueService{
 	    IssueEntity issueEntity = new IssueEntity();
 	    issueEntity.setSchoolId(issueRequestDto.getSchoolId());
 
-	    IssueType issueType = entityManager.getReference(IssueType.class, issueRequestDto.getIssueTypeId());
+	    IssueType issueType = issueTypeRepository.findByIssueType(issueRequestDto.getIssueType())
+	            .orElseGet(()->{
+	                LOGGER.warn("Issue type is not found with id: {}, setting issue type to OTHER", issueRequestDto.getIssueType());
+	                return issueTypeRepository.findByIssueType("OTHER")
+	                        .orElseThrow(()-> new CustomException("E9007"));
+	            });
 	    issueEntity.setIssueType(issueType);
-	    issueEntity.setStatusId(issueRequestDto.getStatusId());
+	    IssueStatus issueStatus = issueStatusRepository.findByStatus(issueRequestDto.getIssueStatus())
+	            .orElseGet(()->{
+	                LOGGER.warn("Issue status is not found with id: {}, setting issue status to UNKNOWN", issueRequestDto.getIssueStatus());
+	                return issueStatusRepository.findByStatus("UNKNOWN")
+	                        .orElseThrow(()-> new CustomException("E9007"));
+	            });
+	    issueEntity.setIssueStatus(issueStatus);
 	    issueEntity.setFirstDetected(issueRequestDto.getFirstDetected());
 	    issueEntity.setLastUpdated(issueRequestDto.getLastUpdated());
 	    issueEntity.setResolvedAt(issueRequestDto.getResolvedAt());
@@ -99,12 +112,16 @@ public class IssueService{
 	    IssueResponseDto issueResponseDto = new IssueResponseDto();
 
 	    issueResponseDto.setId(issueEntity.getId());
+        issueResponseDto.setIssueType(issueEntity.getIssueType().getIssueType());
+        issueResponseDto.setIssueTypeDescription(issueEntity.getIssueType().getDescription());
+        issueResponseDto.setStatus(issueEntity.getIssueStatus().getStatus());
+        issueResponseDto.setStatusDescription(issueEntity.getIssueStatus().getDescription());
 	    issueResponseDto.setFirstDetected(issueEntity.getFirstDetected());
 	    issueResponseDto.setLastUpdated(issueEntity.getLastUpdated());
 	    issueResponseDto.setResolvedAt(issueEntity.getResolvedAt());
 
-	    List<ProjectEntity> projectEntities = projectDao.findProjectByIssueId(issueEntity.getId());
-
+	    List<ProjectEntity> projectEntities = issueEntity.getProjects();
+	    
 	    List<ProjectResponseDto> projectResponseDtos = new ArrayList<>();
 
 	    for(ProjectEntity projectEntity : projectEntities){
@@ -126,6 +143,9 @@ public class IssueService{
 	    }
 
 	    issueResponseDto.setProjects(projectResponseDtos);
+	    List<DocumentResponseDto> issueDocuments = documentService
+	    		.getDocumentByObjectIdAndObjectCategoryId(issueEntity.getId(), CATEGORY_ISSUE);
+	    issueResponseDto.setIssueDocuments(issueDocuments);
 
 	    return issueResponseDto;
 	}

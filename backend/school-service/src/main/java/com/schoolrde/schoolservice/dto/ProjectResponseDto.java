@@ -17,6 +17,7 @@ public class ProjectResponseDto{
     private Date expectedCompletionDate;
     private Date actualCompletionDate;
     private String remarks;
+    private List<DocumentResponseDto> projectDocuments;
     private List<TenderResponseDto> tenders;
 
     // Getters and setters are generated using STS: Source > Generate Getters and Setters
@@ -108,6 +109,14 @@ public class ProjectResponseDto{
         this.remarks = remarks;
     }
 
+    public List<DocumentResponseDto> getProjectDocuments(){
+        return projectDocuments;
+    }
+
+    public void setProjectDocuments(List<DocumentResponseDto> projectDocuments){
+        this.projectDocuments = projectDocuments;
+    }
+
     public List<TenderResponseDto> getTenders(){
         return tenders;
     }
@@ -115,4 +124,5 @@ public class ProjectResponseDto{
     public void setTenders(List<TenderResponseDto> tenders){
         this.tenders = tenders;
     }
+    
 }

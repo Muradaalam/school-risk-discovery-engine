@@ -2,6 +2,7 @@ package com.schoolrde.schoolservice.dto;
 
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.util.List;
 
 public class TenderResponseDto{
 
@@ -19,6 +20,8 @@ public class TenderResponseDto{
     private String contractorName;
     private Date contractStartDate;
     private Date contractEndDate;
+    private List<DocumentResponseDto> tenderDocuments;
+
 
     // Getters and setters are generated using STS: Source > Generate Getters and Setters
     public Integer getId(){
@@ -133,4 +136,13 @@ public class TenderResponseDto{
     public void setContractEndDate(Date date){
         this.contractEndDate = date;
     }
+    
+    public List<DocumentResponseDto> getTenderDocuments(){
+        return tenderDocuments;
+    }
+
+    public void setTenderDocuments(List<DocumentResponseDto> tenderDocuments){
+        this.tenderDocuments = tenderDocuments;
+    }
+
 }

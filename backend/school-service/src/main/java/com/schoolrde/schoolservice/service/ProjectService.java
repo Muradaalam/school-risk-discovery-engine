@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.schoolrde.schoolservice.dao.bussiness.ProjectDao;
-import com.schoolrde.schoolservice.dao.bussiness.TenderDao;
+import com.schoolrde.schoolservice.dto.DocumentResponseDto;
 import com.schoolrde.schoolservice.dto.ProjectRequestDto;
 import com.schoolrde.schoolservice.dto.ProjectResponseDto;
 import com.schoolrde.schoolservice.dto.TenderResponseDto;
@@ -21,13 +21,17 @@ import com.schoolrde.schoolservice.exception.CustomException;
 public class ProjectService{
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProjectService.class);
+	
+	public static final Integer CATEGORY_PROJECT = 4;
+	public static final Integer CATEGORY_TENDER = 5;
 
 	private final ProjectDao projectDao;
-	private final TenderDao tenderDao;
+    private final DocumentService documentService;
 
-	public ProjectService(ProjectDao projectDao, TenderDao tenderDao){
+
+	public ProjectService(ProjectDao projectDao, DocumentService documentService){
 	    this.projectDao = projectDao;
-	    this.tenderDao = tenderDao;
+	    this.documentService = documentService;
 	}
 
 	
@@ -104,9 +108,12 @@ public class ProjectService{
 	    projectResponseDto.setExpectedCompletionDate(projectEntity.getExpectedCompletionDate());
 	    projectResponseDto.setActualCompletionDate(projectEntity.getActualCompletionDate());
 	    projectResponseDto.setRemarks(projectEntity.getRemarks());
+	    List<DocumentResponseDto> projectDocuments = documentService
+	    		.getDocumentByObjectIdAndObjectCategoryId(projectEntity.getId(), CATEGORY_PROJECT);
+	    projectResponseDto.setProjectDocuments(projectDocuments);
 
-	    List<TenderEntity> tenderEntities = tenderDao.findTenderByProjectId(projectEntity.getId());
-
+	    List<TenderEntity> tenderEntities = projectEntity.getTenders();
+	    
 	    List<TenderResponseDto> tenderResponseDtos = new ArrayList<>();
 
 	    for(TenderEntity tenderEntity : tenderEntities){
@@ -117,6 +124,7 @@ public class ProjectService{
 	        tenderResponseDto.setTenderNumber(tenderEntity.getTenderNumber());
 	        tenderResponseDto.setTenderTitle(tenderEntity.getTenderTitle());
 	        tenderResponseDto.setTenderDescription(tenderEntity.getTenderDescription());
+	        tenderResponseDto.setTenderStatus(tenderEntity.getTenderStatus().getStatus());
 	        tenderResponseDto.setEstimatedAmount(tenderEntity.getEstimatedAmount());
 	        tenderResponseDto.setAwardedAmount(tenderEntity.getAwardedAmount());
 	        tenderResponseDto.setPublicationDate(tenderEntity.getPublicationDate());
@@ -125,10 +133,12 @@ public class ProjectService{
 	        tenderResponseDto.setContractorName(tenderEntity.getContractorName());
 	        tenderResponseDto.setContractStartDate(tenderEntity.getContractStartDate());
 	        tenderResponseDto.setContractEndDate(tenderEntity.getContractEndDate());
+		    List<DocumentResponseDto> tenderDocuments = documentService
+		    		.getDocumentByObjectIdAndObjectCategoryId(tenderEntity.getId(), CATEGORY_TENDER);
+		    tenderResponseDto.setTenderDocuments(tenderDocuments);
 
 	        tenderResponseDtos.add(tenderResponseDto);
 	    }
-
 	    projectResponseDto.setTenders(tenderResponseDtos);
 
 	    return projectResponseDto;

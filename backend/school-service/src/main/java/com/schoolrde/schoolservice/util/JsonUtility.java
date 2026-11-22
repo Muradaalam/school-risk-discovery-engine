@@ -1,4 +1,5 @@
 package com.schoolrde.schoolservice.util;
+//JsonUtiliy has been implemented with AI assistance 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

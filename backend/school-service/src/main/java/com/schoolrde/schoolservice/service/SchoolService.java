@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.schoolrde.schoolservice.dao.bussiness.SchoolDao;
+import com.schoolrde.schoolservice.dto.DocumentResponseDto;
 import com.schoolrde.schoolservice.dto.EventResponseDto;
 import com.schoolrde.schoolservice.dto.InspectionResponseDto;
 import com.schoolrde.schoolservice.dto.IssueResponseDto;
@@ -15,7 +15,6 @@ import com.schoolrde.schoolservice.dto.PrioritySnapshotResponseDto;
 import com.schoolrde.schoolservice.dto.ProjectResponseDto;
 import com.schoolrde.schoolservice.dto.SchoolRequestDto;
 import com.schoolrde.schoolservice.dto.SchoolResponseDto;
-import com.schoolrde.schoolservice.dto.SourceResponseDto;
 import com.schoolrde.schoolservice.dto.SchoolEntireResponseDto;
 import com.schoolrde.schoolservice.dto.TenderResponseDto;
 import com.schoolrde.schoolservice.entity.EventEntity;
@@ -24,7 +23,6 @@ import com.schoolrde.schoolservice.entity.IssueEntity;
 import com.schoolrde.schoolservice.entity.PrioritySnapshotEntity;
 import com.schoolrde.schoolservice.entity.ProjectEntity;
 import com.schoolrde.schoolservice.entity.SchoolEntity;
-import com.schoolrde.schoolservice.entity.SourceEntity;
 import com.schoolrde.schoolservice.entity.SchoolEntireEntity;
 import com.schoolrde.schoolservice.entity.TenderEntity;
 import com.schoolrde.schoolservice.exception.CustomException;
@@ -34,8 +32,22 @@ public class SchoolService{
 	
     private static final Logger LOGGER=LoggerFactory.getLogger(SchoolService.class);
     
-    @Autowired
-    SchoolDao schoolDao;
+    public static final Integer CATEGORY_SCHOOL = 1;
+    public static final Integer CATEGORY_ISSUE = 2;
+    public static final Integer CATEGORY_EVENT = 3;
+    public static final Integer CATEGORY_PROJECT = 4;
+    public static final Integer CATEGORY_TENDER = 5;
+    public static final Integer CATEGORY_INSPECTION = 6;
+
+    
+    private final SchoolDao schoolDao;
+    private final DocumentService documentService;
+
+
+    SchoolService(SchoolDao schoolDao, DocumentService documentService){
+        this.schoolDao = schoolDao;
+        this.documentService = documentService;
+    }
     
     public SchoolResponseDto getSchoolBySchoolId(String schoolId){
     	LOGGER.debug("Fetching school with schoolId : {}", schoolId);
@@ -160,6 +172,9 @@ public class SchoolService{
         schoolEntireResponseDto.setLongitude(schoolEntireEntity.getLongitude());
         schoolEntireResponseDto.setSchoolType(schoolEntireEntity.getSchoolType());
         schoolEntireResponseDto.setManagementType(schoolEntireEntity.getManagementType());
+        List<DocumentResponseDto> schoolDocuments = documentService.
+        		getDocumentByObjectIdAndObjectCategoryId(schoolEntireEntity.getId(), CATEGORY_SCHOOL);
+        schoolEntireResponseDto.setSchoolDocuments(schoolDocuments);
 
         List<PrioritySnapshotResponseDto> prioritySnapshots = schoolEntireEntity.getPrioritySnapshots()
                 .stream().map(this::convertToPrioritySnapshotResponseDto)
@@ -178,12 +193,6 @@ public class SchoolService{
                 .collect(Collectors.toList());
 
         schoolEntireResponseDto.setInspections(inspections);
-
-        List<SourceResponseDto> sources = schoolEntireEntity.getSources()
-                .stream().map(this::convertToSourceResponseDto)
-                .collect(Collectors.toList());
-
-        schoolEntireResponseDto.setSources(sources);
 
         List<EventResponseDto> events = schoolEntireEntity.getEvents()
                 .stream().map(this::convertToEventResponseDto)
@@ -213,7 +222,7 @@ public class SchoolService{
 
     }
     
-    private IssueResponseDto convertToIssueResponseDto(IssueEntity issueEntity) {
+    private IssueResponseDto convertToIssueResponseDto(IssueEntity issueEntity){
 
     	LOGGER.info("Creating IssueResponseDto...");
         IssueResponseDto issueResponseDto = new IssueResponseDto();
@@ -230,8 +239,11 @@ public class SchoolService{
         List<ProjectResponseDto> projects = issueEntity.getProjects()
                 .stream().map(this::convertToProjectResponseDto)
                 .collect(Collectors.toList());
-
         issueResponseDto.setProjects(projects);
+
+        List<DocumentResponseDto> issueDocuments = documentService
+                .getDocumentByObjectIdAndObjectCategoryId(issueEntity.getId(), CATEGORY_ISSUE);
+        issueResponseDto.setIssueDocuments(issueDocuments);
 
         return issueResponseDto;
     }
@@ -256,8 +268,12 @@ public class SchoolService{
         List<TenderResponseDto> tenders = projectEntity.getTenders()
                 .stream().map(this::convertToTenderResponseDto)
                 .collect(Collectors.toList());
-
         projectResponseDto.setTenders(tenders);
+
+        List<DocumentResponseDto> projectDocuments = documentService
+                .getDocumentByObjectIdAndObjectCategoryId(projectEntity.getId(), CATEGORY_PROJECT);
+        projectResponseDto.setProjectDocuments(projectDocuments);
+
 
         return projectResponseDto;
     }
@@ -282,6 +298,9 @@ public class SchoolService{
         tenderResponseDto.setContractorName(tenderEntity.getContractorName());
         tenderResponseDto.setContractStartDate(tenderEntity.getContractStartDate());
         tenderResponseDto.setContractEndDate(tenderEntity.getContractEndDate());
+        List<DocumentResponseDto> tenderDocuments = documentService
+                .getDocumentByObjectIdAndObjectCategoryId(tenderEntity.getId(), CATEGORY_TENDER);
+        tenderResponseDto.setTenderDocuments(tenderDocuments);
 
         return tenderResponseDto;
     }
@@ -297,26 +316,14 @@ public class SchoolService{
         inspectionResponseDto.setInspectionType(inspectionEntity.getInspectionType());
         inspectionResponseDto.setRemarks(inspectionEntity.getRemarks());
         inspectionResponseDto.setInspectorName(inspectionEntity.getInspectorName());
+        List<DocumentResponseDto> inspectionDocuments = documentService
+                .getDocumentByObjectIdAndObjectCategoryId(inspectionEntity.getId(), CATEGORY_INSPECTION);
+        inspectionResponseDto.setInspectionDocuments(inspectionDocuments);
 
         return inspectionResponseDto;
 
     }
-    
-    private SourceResponseDto convertToSourceResponseDto(SourceEntity sourceEntity){
 
-        LOGGER.info("Creating SourceResponseDto...");
-
-        SourceResponseDto sourceResponseDto = new SourceResponseDto();
-
-        sourceResponseDto.setId(sourceEntity.getId());
-        sourceResponseDto.setSourceName(sourceEntity.getSourceName().getSourceName());
-        sourceResponseDto.setSourceUrl(sourceEntity.getSourceUrl());
-        sourceResponseDto.setPublicationDate(sourceEntity.getPublicationDate());
-
-        return sourceResponseDto;
-
-    }
-    
     private EventResponseDto convertToEventResponseDto(EventEntity eventEntity){
 
         LOGGER.info("Creating EventResponseDto...");
@@ -328,6 +335,9 @@ public class SchoolService{
         eventResponseDto.setDetailedDescription(eventEntity.getDetailedDescription());
         eventResponseDto.setEventDate(eventEntity.getEventDate());
         eventResponseDto.setLocation(eventEntity.getLocation());
+        List<DocumentResponseDto> eventDocuments = documentService
+                .getDocumentByObjectIdAndObjectCategoryId(eventEntity.getId(), CATEGORY_EVENT);
+        eventResponseDto.setEventDocuments(eventDocuments);
 
         return eventResponseDto;
 

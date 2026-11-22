@@ -9,5 +9,7 @@ import com.schoolrde.schoolservice.entity.ObjectCategory;
 public interface ObjectCategoryRepository extends JpaRepository<ObjectCategory,Integer>{
     
 	Optional<ObjectCategory> findById(Integer Id);
+	
+	Optional<ObjectCategory> findByObjectName(String objectName);
     
 }

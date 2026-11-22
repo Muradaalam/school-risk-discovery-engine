@@ -11,4 +11,6 @@ public interface EventTypeRepository extends JpaRepository<EventType,Integer>{
     
 	Optional<EventType> findById(Integer Id);
     
+	Optional<EventType> findByEventType(String eventType);
+	
 }
