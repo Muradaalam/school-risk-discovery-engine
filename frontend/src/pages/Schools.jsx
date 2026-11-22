@@ -4,6 +4,7 @@ import './Schools.css'
 import { useState } from 'react'
 import { Search, Filter } from 'lucide-react'
 import { demoSchools } from '../data/demoSchools'
+import { normalizeSchool } from '../utils/normalizeSchool'
 
 // Temporary demonstration data.
 // Replace with actual backend data later.
@@ -14,7 +15,9 @@ function Schools({ onSchoolSelect }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('All')
 
-  const filteredSchools = demoSchools.filter((school) => {
+  const filteredSchools = demoSchools
+  .map(normalizeSchool)
+  .filter((school) => {
     const search = searchTerm.toLowerCase().trim()
 
     const matchesSearch =
