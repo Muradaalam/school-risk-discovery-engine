@@ -9,9 +9,11 @@ import './App.css'
 import Map from './pages/Map'
 import Analytics from './pages/Analytics'
 // import Loading from './components/Loading'
+// import ErrorMessage from './components/ErrorMessage'
+import BackendSchoolTest from './pages/BackendSchoolTest'
 
 function App() {
-  const [activePage, setActivePage] = useState('Dashboard')
+  const [activePage, setActivePage] = useState('BackendSchoolTest')
   const [selectedSchool, setSelectedSchool] = useState(null)
 
   function handlePageChange(page) {
@@ -31,6 +33,8 @@ function App() {
 
   function renderPage() {
     switch (activePage) {
+      case 'BackendSchoolTest':
+  return <BackendSchoolTest />
       case 'Schools':
         return <Schools onSchoolSelect={handleSchoolSelect} />
 

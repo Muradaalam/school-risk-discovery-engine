@@ -1,15 +1,26 @@
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
-export async function apiGet(endpoint) {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`)
+export async function apiGet(endpoint, token) {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: token
+      ? { Authorization: `Bearer ${token}` }
+      : {},
+  })
 
   if (!response.ok) {
-    throw new Error(
-      `API request failed: ${response.status}`
-    )
+    throw new Error(`API request failed: ${response.status}`)
   }
 
   return response.json()
 }
+
+
+export async function getSchoolById(id, token) {
+  return apiGet(
+    `/school-service/school/getSchool/id?id=${encodeURIComponent(id)}`,
+    token
+  )
+}
+
+
