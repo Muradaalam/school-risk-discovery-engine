@@ -11,11 +11,11 @@ import { normalizeSchool } from '../utils/normalizeSchool'
 
 
 
-function Schools({ onSchoolSelect }) {
+function Schools({ onSchoolSelect, schools = demoSchools }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('All')
 
-  const filteredSchools = demoSchools
+  const filteredSchools = schools
   .map(normalizeSchool)
   .filter((school) => {
     const search = searchTerm.toLowerCase().trim()
@@ -44,7 +44,9 @@ function Schools({ onSchoolSelect }) {
       <div className="schools-table-card">
         <div className="schools-table-header">
           <h2>All Schools</h2>
-          <span className="demo-label">Demo Data</span>
+          <span className="demo-label">
+  {schools === demoSchools ? 'Demo Data' : 'Backend Data'}
+</span>
         </div>
 
         <div className="schools-controls">
@@ -127,7 +129,7 @@ function Schools({ onSchoolSelect }) {
         </div>
 
         <p className="schools-result-count">
-          Showing {filteredSchools.length} of {demoSchools.length} schools
+          Showing {filteredSchools.length} of {schools.length} schools
         </p>
       </div>
     </div>
