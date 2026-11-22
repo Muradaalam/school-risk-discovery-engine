@@ -2,6 +2,96 @@
 import './SchoolDetails.css'
 import { demoEvidence } from '../data/demoEvidence'
 
+function formatDate(value) {
+  if (!value) return 'Not available'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value)
+
+  return date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
+function safeUrl(value) {
+  if (typeof value !== 'string') return null
+
+  try {
+    const url = new URL(value)
+    return ['http:', 'https:'].includes(url.protocol)
+      ? url.href
+      : null
+  } catch {
+    return null
+  }
+}
+
+function DocumentList({ documents, emptyMessage }) {
+  if (!Array.isArray(documents) || documents.length === 0) {
+    return <p>{emptyMessage}</p>
+  }
+
+  return (
+    <div className="evidence-timeline">
+      {documents.map((document, index) => {
+        const sourceUrl = safeUrl(document.source?.sourceUrl)
+
+        return (
+          <div
+            className="evidence-item"
+            key={document.id ?? index}
+          >
+            <div className="evidence-dot"></div>
+
+            <div className="evidence-content">
+              <span className="evidence-date">
+                {formatDate(document.source?.publicationDate)}
+              </span>
+
+              <h3>
+                {document.documentName ?? 'Unnamed Document'}
+              </h3>
+
+              <p>
+                {document.description ?? 'No description available'}
+              </p>
+
+              <p>
+                Category: {document.objectCategory ?? 'Not available'}
+              </p>
+
+              <div className="evidence-source">
+                Source: {document.source?.sourceName ?? 'Not available'}
+              </div>
+
+              {document.docPath && (
+                <p>Stored document path: {document.docPath}</p>
+              )}
+
+              {sourceUrl && (
+                <a
+                  href={sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View Source Website
+                </a>
+              )}
+
+              <p>
+                Document download is not yet connected.
+              </p>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function SchoolDetails({ school, onBack }) {
   if (!school) {
     return <p>No school selected.</p>
@@ -10,53 +100,41 @@ function SchoolDetails({ school, onBack }) {
   const isBackendSchool = Boolean(school.schoolName)
 
   const issues = isBackendSchool && Array.isArray(school.issues)
-    ? school.issues : []
+    ? school.issues
+    : []
 
-  const inspections = isBackendSchool && Array.isArray(school.inspections)
-    ? school.inspections : []
+  const inspections =
+    isBackendSchool && Array.isArray(school.inspections)
+      ? school.inspections
+      : []
 
   const sources = isBackendSchool && Array.isArray(school.sources)
-    ? school.sources : []
+    ? school.sources
+    : []
 
   const events = isBackendSchool && Array.isArray(school.events)
-    ? school.events : []
+    ? school.events
+    : []
 
-  const snapshots = isBackendSchool && Array.isArray(school.prioritySnapshots)
-    ? school.prioritySnapshots : []
+  const snapshots =
+    isBackendSchool && Array.isArray(school.prioritySnapshots)
+      ? school.prioritySnapshots
+      : []
+
+  const schoolDocuments =
+    isBackendSchool && Array.isArray(school.schoolDocuments)
+      ? school.schoolDocuments
+      : []
 
   const evidence = !isBackendSchool
     ? demoEvidence[school.udise] || []
     : []
 
-  function formatDate(value) {
-    if (!value) return 'Not available'
-
-    const date = new Date(value)
-
-    if (Number.isNaN(date.getTime())) {
-      return String(value)
-    }
-
-    return date.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      timeZone: 'UTC',
-    })
-  }
-
-  function safeSourceUrl(value) {
-    if (typeof value !== 'string') return null
-
-    try {
-      const url = new URL(value)
-      return ['http:', 'https:'].includes(url.protocol)
-        ? url.href
-        : null
-    } catch {
-      return null
-    }
-  }
+  const latestSnapshot = [...snapshots].sort(
+    (a, b) =>
+      new Date(b.snapshotDate ?? 0) -
+      new Date(a.snapshotDate ?? 0)
+  )[0]
 
   return (
     <div className="school-details-page">
@@ -73,6 +151,7 @@ function SchoolDetails({ school, onBack }) {
           <h1>
             {isBackendSchool ? school.schoolName : school.name}
           </h1>
+
           <p>
             School Information — {isBackendSchool ? 'Backend Data' : 'Demo Data'}
           </p>
@@ -86,7 +165,7 @@ function SchoolDetails({ school, onBack }) {
           }`}
         >
           {isBackendSchool
-            ? `Priority Score: ${snapshots[0]?.priorityScore ?? 'Not available'}`
+            ? `Priority Score: ${latestSnapshot?.priorityScore ?? 'Not available'}`
             : school.priority}
         </span>
       </div>
@@ -104,13 +183,21 @@ function SchoolDetails({ school, onBack }) {
                 className="evidence-content"
                 key={snapshot.id ?? index}
               >
-                <p>Assessment Date: {formatDate(snapshot.snapshotDate)}</p>
-                <p>Priority Score: {snapshot.priorityScore ?? 'Not available'}</p>
-                <p>Active Issues: {snapshot.activeIssues ?? 'Not available'}</p>
+                <p>
+                  Assessment Date: {formatDate(snapshot.snapshotDate)}
+                </p>
+                <p>
+                  Priority Score: {snapshot.priorityScore ?? 'Not available'}
+                </p>
+                <p>
+                  Active Issues: {snapshot.activeIssues ?? 'Not available'}
+                </p>
                 <p>
                   Under Resolution: {snapshot.underResolutionIssues ?? 'Not available'}
                 </p>
-                <p>Resolved Issues: {snapshot.resolvedIssues ?? 'Not available'}</p>
+                <p>
+                  Resolved Issues: {snapshot.resolvedIssues ?? 'Not available'}
+                </p>
               </div>
             ))
           ) : (
@@ -135,14 +222,28 @@ function SchoolDetails({ school, onBack }) {
         </div>
 
         <div className="school-info-card">
-          <p>Evidence Records</p>
+          <p>School Documents</p>
           <h3>
             {isBackendSchool
-              ? 'Not available'
-              : school.evidenceCount}
+              ? schoolDocuments.length
+              : 'Demo data'}
           </h3>
         </div>
       </div>
+
+      {isBackendSchool && (
+        <div className="school-evidence-section">
+          <div className="evidence-heading">
+            <h2>School Documents</h2>
+            <span className="demo-label">Backend Data</span>
+          </div>
+
+          <DocumentList
+            documents={schoolDocuments}
+            emptyMessage="No school documents returned by the backend."
+          />
+        </div>
+      )}
 
       {isBackendSchool && (
         <div className="school-evidence-section">
@@ -154,22 +255,38 @@ function SchoolDetails({ school, onBack }) {
           {issues.length > 0 ? (
             <div className="evidence-timeline">
               {issues.map((issue, index) => (
-                <div className="evidence-item" key={issue.id ?? index}>
+                <div
+                  className="evidence-item"
+                  key={issue.id ?? index}
+                >
                   <div className="evidence-dot"></div>
+
                   <div className="evidence-content">
                     <span className="evidence-date">
                       {formatDate(issue.firstDetected)}
                     </span>
+
                     <h3>{issue.issueType ?? 'School Issue'}</h3>
+
                     <p>
-                      {issue.issueTypeDescription ?? 'No description available'}
+                      {issue.issueTypeDescription ??
+                        'No description available'}
                     </p>
+
                     <div className="evidence-source">
                       Status: {issue.status ?? 'Unknown'}
                     </div>
+
                     {issue.statusDescription && (
                       <p>{issue.statusDescription}</p>
                     )}
+
+                    <h3>Issue Documents</h3>
+
+                    <DocumentList
+                      documents={issue.issueDocuments}
+                      emptyMessage="No documents attached to this issue."
+                    />
                   </div>
                 </div>
               ))}
@@ -195,14 +312,20 @@ function SchoolDetails({ school, onBack }) {
                   key={inspection.id ?? index}
                 >
                   <div className="evidence-dot"></div>
+
                   <div className="evidence-content">
                     <span className="evidence-date">
                       {formatDate(inspection.inspectionDate)}
                     </span>
+
                     <h3>
                       {inspection.inspectionType ?? 'School Inspection'}
                     </h3>
-                    <p>{inspection.remarks ?? 'No remarks available'}</p>
+
+                    <p>
+                      {inspection.remarks ?? 'No remarks available'}
+                    </p>
+
                     <div className="evidence-source">
                       Inspector: {inspection.inspectorName ?? 'Not available'}
                     </div>
@@ -226,7 +349,7 @@ function SchoolDetails({ school, onBack }) {
           {sources.length > 0 ? (
             <div className="evidence-timeline">
               {sources.map((source, index) => {
-                const url = safeSourceUrl(source.sourceUrl)
+                const url = safeUrl(source.sourceUrl)
 
                 return (
                   <div
@@ -234,11 +357,15 @@ function SchoolDetails({ school, onBack }) {
                     key={source.id ?? index}
                   >
                     <div className="evidence-dot"></div>
+
                     <div className="evidence-content">
                       <span className="evidence-date">
                         {formatDate(source.publicationDate)}
                       </span>
-                      <h3>{source.sourceName ?? 'Unnamed Source'}</h3>
+
+                      <h3>
+                        {source.sourceName ?? 'Unnamed Source'}
+                      </h3>
 
                       {url ? (
                         <a
@@ -272,7 +399,10 @@ function SchoolDetails({ school, onBack }) {
           {events.length > 0 ? (
             <div className="evidence-timeline">
               {events.map((event, index) => (
-                <div className="evidence-item" key={event.id ?? index}>
+                <div
+                  className="evidence-item"
+                  key={event.id ?? index}
+                >
                   <div className="evidence-dot"></div>
 
                   <div className="evidence-content">
@@ -308,10 +438,19 @@ function SchoolDetails({ school, onBack }) {
           </span>
         </div>
 
-        {evidence.length > 0 ? (
+        {isBackendSchool ? (
+          <p>
+            School and issue document metadata is displayed above.
+            Document downloads and independent evidence verification
+            are not yet connected.
+          </p>
+        ) : evidence.length > 0 ? (
           <div className="evidence-timeline">
             {evidence.map((item) => (
-              <div className="evidence-item" key={item.id}>
+              <div
+                className="evidence-item"
+                key={item.id}
+              >
                 <div className="evidence-dot"></div>
 
                 <div className="evidence-content">
@@ -336,9 +475,8 @@ function SchoolDetails({ school, onBack }) {
           </div>
         ) : (
           <p>
-            {isBackendSchool
-              ? 'Evidence documents are not yet connected for this school. The issues, inspections, and sources shown above are backend records, not independently verified evidence documents.'
-              : 'No demonstration evidence records are available for this school. Its inspection priority should not be inferred from missing evidence.'}
+            No demonstration evidence records are available
+            for this school.
           </p>
         )}
       </div>
