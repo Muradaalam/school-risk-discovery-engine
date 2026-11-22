@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { getSchoolById } from '../services/api'
 import Loading from '../components/Loading'
 import ErrorMessage from '../components/ErrorMessage'
+import SchoolDetails from './SchoolDetails'
 
 function BackendSchoolTest() {
   const [token, setToken] = useState('')
@@ -24,6 +25,14 @@ function BackendSchoolTest() {
     } finally {
       setLoading(false)
     }
+  }
+    if (school) {
+    return (
+      <SchoolDetails
+        school={school}
+        onBack={() => setSchool(null)}
+      />
+    )
   }
 
   return (

@@ -13,7 +13,7 @@ import Analytics from './pages/Analytics'
 import BackendSchoolTest from './pages/BackendSchoolTest'
 
 function App() {
-  const [activePage, setActivePage] = useState('BackendSchoolTest')
+  const [activePage, setActivePage] = useState('Dashboard')
   const [selectedSchool, setSelectedSchool] = useState(null)
 
   function handlePageChange(page) {

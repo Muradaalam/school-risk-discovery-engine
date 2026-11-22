@@ -6,9 +6,12 @@ import { demoEvidence } from '../data/demoEvidence'
 
 function SchoolDetails({ school, onBack }) {
 
-    const evidence = school
-  ? demoEvidence[school.udise] || []
-  : []
+  const isBackendSchool = Boolean(school?.schoolName)
+
+const evidence =
+  school && !isBackendSchool
+    ? demoEvidence[school.udise] || []
+    : []
   if (!school) {
     return <p>No school selected.</p>
   }
@@ -24,23 +27,33 @@ function SchoolDetails({ school, onBack }) {
 
       <div className="school-details-header">
         <div>
-          <h1>{school.name}</h1>
-          <p>School Information — Demo Data</p>
+          <h1>{isBackendSchool ? school.schoolName : school.name}</h1>
+          <p>
+            {isBackendSchool
+              ? 'School Information — Backend Data'
+              : 'School Information — Demo Data'}
+          </p>
         </div>
 
         <span
-          className={`priority-badge ${school.priority
-            .toLowerCase()
-            .replace(/\s+/g, '-')}`}
+          className={`priority-badge ${
+            isBackendSchool
+              ? 'priority-not-assessed'
+              : school.priority.toLowerCase().replace(/\s+/g, '-')
+          }`}
         >
-          {school.priority}
+          {isBackendSchool
+            ? `Priority Score: ${
+                school.prioritySnapshots?.[0]?.priorityScore ?? 'Not available'
+              }`
+            : school.priority}
         </span>
       </div>
 
       <div className="school-info-grid">
         <div className="school-info-card">
           <p>UDISE Code</p>
-          <h3>{school.udise}</h3>
+          <h3>{isBackendSchool ? school.udiseCode : school.udise}</h3>
         </div>
 
         <div className="school-info-card">
@@ -50,7 +63,9 @@ function SchoolDetails({ school, onBack }) {
 
         <div className="school-info-card">
           <p>Evidence Records</p>
-          <h3>{school.evidenceCount}</h3>
+          <h3>
+  {isBackendSchool ? 'Not available' : school.evidenceCount}
+</h3>
         </div>
       </div>
 
@@ -58,7 +73,9 @@ function SchoolDetails({ school, onBack }) {
 <div className="school-evidence-section">
   <div className="evidence-heading">
     <h2>Evidence Timeline</h2>
-    <span className="demo-label">Demo Data</span>
+    <span className="demo-label">
+  {isBackendSchool ? 'Backend Data' : 'Demo Data'}
+</span>
   </div>
 
   {evidence.length > 0 ? (
@@ -89,9 +106,9 @@ function SchoolDetails({ school, onBack }) {
     </div>
   ) : (
     <p>
-      No demonstration evidence records are available
-      for this school. Its inspection priority should
-      not be inferred from missing evidence.
+      {isBackendSchool
+        ? 'Evidence documents are not yet connected for this school. No conclusion about its inspection priority should be drawn from this.'
+        : 'No demonstration evidence records are available for this school. Its inspection priority should not be inferred from missing evidence.'}
     </p>
   )}
 </div>
