@@ -253,6 +253,7 @@ public class SchoolService{
         prioritySnapshotResponseDto.setActiveIssues(prioritySnapshotEntity.getActiveIssues());
         prioritySnapshotResponseDto.setUnderResolutionIssues(prioritySnapshotEntity.getUnderResolutionIssues());
         prioritySnapshotResponseDto.setResolvedIssues(prioritySnapshotEntity.getResolvedIssues());
+	    prioritySnapshotResponseDto.setCreatedOn(prioritySnapshotEntity.getCreatedOn());
 
         return prioritySnapshotResponseDto;
 
