@@ -8,5 +8,7 @@ import com.schoolrde.schoolservice.entity.TenderStatus;
 public interface TenderStatusRepository extends JpaRepository<TenderStatus,Integer>{
     
 	Optional<TenderStatus> findById(Integer Id);
+	
+	Optional<TenderStatus> findByStatus(String status);
     
 }

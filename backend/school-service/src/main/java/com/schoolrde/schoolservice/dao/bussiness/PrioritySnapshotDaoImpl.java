@@ -1,6 +1,7 @@
 package com.schoolrde.schoolservice.dao.bussiness;
 
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
@@ -24,7 +25,7 @@ public class PrioritySnapshotDaoImpl implements PrioritySnapshotDao{
     }
 
     @Override
-    public Optional<PrioritySnapshotEntity> findPrioritySnapshotBySchoolId(Integer schoolId){
+    public List<PrioritySnapshotEntity> findPrioritySnapshotBySchoolId(Integer schoolId){
     	LOGGER.info("Quering prioritySnapshot from database with schoolId : {}", schoolId);
         return prioritySnapshotRepository.findBySchoolId(schoolId);
     }

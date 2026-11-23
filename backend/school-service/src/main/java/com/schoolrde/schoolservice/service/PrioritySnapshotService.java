@@ -1,4 +1,8 @@
 package com.schoolrde.schoolservice.service;
+// DTO-to-Entity and Entity-to-DTO mapping is implemented with AI assistance
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,17 +27,17 @@ public class PrioritySnapshotService{
 	}
 
 	
-	public PrioritySnapshotResponseDto getPrioritySnapshotBySchoolId(Integer schoolId){
+	public List<PrioritySnapshotResponseDto> getPrioritySnapshotBySchoolId(Integer schoolId){
 
 	    LOGGER.info("Fetching priority snapshot for schoolId: {}", schoolId);
 
-	    PrioritySnapshotEntity prioritySnapshotEntity = prioritySnapshotDao.findPrioritySnapshotBySchoolId(schoolId)
-	                    .orElseThrow(()->{
-	                        LOGGER.warn("Priority snapshot not found for schoolId: {}", schoolId);
-	                        return new CustomException("E9007");
-	                    });
-	    
-	    return convertToPrioritySnapshotResponseDto(prioritySnapshotEntity);
+	    List<PrioritySnapshotEntity> prioritySnapshotEntities = prioritySnapshotDao.findPrioritySnapshotBySchoolId(schoolId);
+
+	    List<PrioritySnapshotResponseDto> prioritySnapshotResponseDtos = prioritySnapshotEntities
+	    		.stream().map(this::convertToPrioritySnapshotResponseDto)
+	            .collect(Collectors.toList());
+
+	    return prioritySnapshotResponseDtos;
 	}
 
 	public PrioritySnapshotResponseDto getPrioritySnapshotById(Integer id){
@@ -73,15 +77,18 @@ public class PrioritySnapshotService{
 
 	    LOGGER.info("Converting PrioritySnapshotEntity to PrioritySnapshotResponseDto");
 
-	    PrioritySnapshotResponseDto responseDto = new PrioritySnapshotResponseDto();
+	    PrioritySnapshotResponseDto prioritySnapshotResponseDto = new PrioritySnapshotResponseDto();
 
-	    responseDto.setId(prioritySnapshotEntity.getId());
-	    responseDto.setSnapshotDate(prioritySnapshotEntity.getSnapshotDate());
-	    responseDto.setPriorityScore(prioritySnapshotEntity.getPriorityScore());
-	    responseDto.setActiveIssues(prioritySnapshotEntity.getActiveIssues());
-	    responseDto.setUnderResolutionIssues(prioritySnapshotEntity.getUnderResolutionIssues());
-	    responseDto.setResolvedIssues(prioritySnapshotEntity.getResolvedIssues());
+	    prioritySnapshotResponseDto.setId(prioritySnapshotEntity.getId());
+	    prioritySnapshotResponseDto.setSchoolId(prioritySnapshotEntity.getSchoolId());
+	    prioritySnapshotResponseDto.setSnapshotDate(prioritySnapshotEntity.getSnapshotDate());
+	    prioritySnapshotResponseDto.setPriorityScore(prioritySnapshotEntity.getPriorityScore());
+	    prioritySnapshotResponseDto.setActiveIssues(prioritySnapshotEntity.getActiveIssues());
+	    prioritySnapshotResponseDto.setUnderResolutionIssues(prioritySnapshotEntity.getUnderResolutionIssues());
+	    prioritySnapshotResponseDto.setResolvedIssues(prioritySnapshotEntity.getResolvedIssues());
+	    prioritySnapshotResponseDto.setCreatedOn(prioritySnapshotEntity.getCreatedOn());
 
-	    return responseDto;
+	    return prioritySnapshotResponseDto;
+
 	}
 }

@@ -20,7 +20,6 @@ public interface SchoolRepository extends JpaRepository<SchoolEntity,Long>{
     @Query("SELECT s FROM SchoolEntireEntity s WHERE s.id = :id")
     Optional<SchoolEntireEntity> findById(@Param("id") Integer id);
     
-    @Query("SELECT s.id FROM SchoolEntity s WHERE s.schoolId = :schoolId")
 	boolean existsBySchoolId(String schoolId);
     
     void deleteBySchoolId(String schoolId);

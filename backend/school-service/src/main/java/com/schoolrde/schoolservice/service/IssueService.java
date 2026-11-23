@@ -1,4 +1,5 @@
 package com.schoolrde.schoolservice.service;
+//DTO-to-Entity and Entity-to-DTO mapping is implemented with AI assistance
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,10 +15,12 @@ import com.schoolrde.schoolservice.dto.DocumentResponseDto;
 import com.schoolrde.schoolservice.dto.IssueRequestDto;
 import com.schoolrde.schoolservice.dto.IssueResponseDto;
 import com.schoolrde.schoolservice.dto.ProjectResponseDto;
+import com.schoolrde.schoolservice.dto.TenderResponseDto;
 import com.schoolrde.schoolservice.entity.IssueEntity;
 import com.schoolrde.schoolservice.entity.IssueStatus;
 import com.schoolrde.schoolservice.entity.IssueType;
 import com.schoolrde.schoolservice.entity.ProjectEntity;
+import com.schoolrde.schoolservice.entity.TenderEntity;
 import com.schoolrde.schoolservice.exception.CustomException;
 
 
@@ -27,7 +30,10 @@ public class IssueService{
 	private static final Logger LOGGER = LoggerFactory.getLogger(IssueService.class);
 	
 	public static final Integer CATEGORY_ISSUE = 2;
+	public static final Integer CATEGORY_PROJECT = 4;
+	public static final Integer CATEGORY_TENDER = 5;
 
+	
 	private final IssueDao issueDao;
 	private final DocumentService documentService;
 	private final IssueTypeRepository issueTypeRepository;
@@ -122,6 +128,7 @@ public class IssueService{
 
 	    List<ProjectEntity> projectEntities = issueEntity.getProjects();
 	    
+	    
 	    List<ProjectResponseDto> projectResponseDtos = new ArrayList<>();
 
 	    for(ProjectEntity projectEntity : projectEntities){
@@ -139,14 +146,52 @@ public class IssueService{
 	        projectResponseDto.setActualCompletionDate(projectEntity.getActualCompletionDate());
 	        projectResponseDto.setRemarks(projectEntity.getRemarks());
 
+	        List<TenderResponseDto> tenderResponseDtos = new ArrayList<>();
+	        for(TenderEntity tenderEntity : projectEntity.getTenders()){
+	            tenderResponseDtos.add(convertToTenderResponseDto(tenderEntity));
+	        }
+
+	        projectResponseDto.setTenders(tenderResponseDtos);
+	        List<DocumentResponseDto> projectDocuments = documentService
+	                .getDocumentByObjectIdAndObjectCategoryId(projectEntity.getId(), CATEGORY_PROJECT);
+	        projectResponseDto.setProjectDocuments(projectDocuments);
+	        
 	        projectResponseDtos.add(projectResponseDto);
 	    }
-
 	    issueResponseDto.setProjects(projectResponseDtos);
+
 	    List<DocumentResponseDto> issueDocuments = documentService
 	    		.getDocumentByObjectIdAndObjectCategoryId(issueEntity.getId(), CATEGORY_ISSUE);
 	    issueResponseDto.setIssueDocuments(issueDocuments);
 
 	    return issueResponseDto;
 	}
+	
+	private TenderResponseDto convertToTenderResponseDto(TenderEntity tenderEntity){
+
+	    LOGGER.info("Converting TenderEntity to TenderResponseDto");
+
+	    TenderResponseDto tenderResponseDto = new TenderResponseDto();
+
+	    tenderResponseDto.setId(tenderEntity.getId());
+	    tenderResponseDto.setProjectId(tenderEntity.getProjectId());
+	    tenderResponseDto.setTenderNumber(tenderEntity.getTenderNumber());
+	    tenderResponseDto.setTenderTitle(tenderEntity.getTenderTitle());
+	    tenderResponseDto.setTenderDescription(tenderEntity.getTenderDescription());
+	    tenderResponseDto.setTenderStatus(tenderEntity.getTenderStatus().getStatus());
+	    tenderResponseDto.setEstimatedAmount(tenderEntity.getEstimatedAmount());
+	    tenderResponseDto.setAwardedAmount(tenderEntity.getAwardedAmount());
+	    tenderResponseDto.setPublicationDate(tenderEntity.getPublicationDate());
+	    tenderResponseDto.setSubmissionDeadline(tenderEntity.getSubmissionDeadline());
+	    tenderResponseDto.setAwardDate(tenderEntity.getAwardDate());
+	    tenderResponseDto.setContractorName(tenderEntity.getContractorName());
+	    tenderResponseDto.setContractStartDate(tenderEntity.getContractStartDate());
+	    tenderResponseDto.setContractEndDate(tenderEntity.getContractEndDate());
+	    List<DocumentResponseDto> tenderDocuments = documentService
+	    		.getDocumentByObjectIdAndObjectCategoryId(tenderEntity.getId(), CATEGORY_TENDER);
+	    tenderResponseDto.setTenderDocuments(tenderDocuments);
+
+	    return tenderResponseDto;
+	}
+	
 }

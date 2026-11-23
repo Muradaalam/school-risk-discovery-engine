@@ -10,7 +10,7 @@ public class TenderRequestDto{
 	private String tenderNumber;
 	private String tenderTitle;
 	private String tenderDescription;
-	private Integer tenderStatusId;
+	private String tenderStatus;
 	private BigDecimal estimatedAmount;
 	private BigDecimal awardedAmount;
 	private Date publicationDate;
@@ -61,12 +61,12 @@ public class TenderRequestDto{
 	    this.tenderDescription = tenderDescription;
 	}
 
-	public Integer getTenderStatusId(){
-	    return tenderStatusId;
+	public String getTenderStatus(){
+	    return tenderStatus;
 	}
 
-	public void setTenderStatusId(Integer tenderStatusId){
-	    this.tenderStatusId = tenderStatusId;
+	public void setTenderStatus(String tenderStatus){
+	    this.tenderStatus = tenderStatus;
 	}
 
 	public BigDecimal getEstimatedAmount(){
