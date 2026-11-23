@@ -2,6 +2,31 @@
 import './SchoolDetails.css'
 import { demoEvidence } from '../data/demoEvidence'
 
+function getPriorityDetails(score) {
+  if (score === null || score === undefined || score === '') {
+    return { label: 'Not Assessed', className: 'priority-not-assessed' }
+  }
+
+  const levels = {
+    0: { label: 'No Priority', className: 'priority-low' },
+    1: { label: 'Low Priority', className: 'priority-low' },
+    2: { label: 'Medium Priority', className: 'priority-medium' },
+    3: { label: 'High Priority', className: 'priority-high' },
+  }
+
+  return levels[String(score)] ?? {
+    label: `Score ${score}`,
+    className: 'priority-not-assessed',
+  }
+}
+
+function formatPriority(score) {
+  const level = getPriorityDetails(score)
+  return score == null
+    ? level.label
+    : `${level.label} (Score ${score})`
+}
+
 function formatDate(value) {
   if (!value) return 'Not available'
 
@@ -92,6 +117,99 @@ function DocumentList({ documents, emptyMessage }) {
   )
 }
 
+
+function buildSchoolTimeline(school) {
+  const entries = []
+
+  const snapshots = Array.isArray(school.prioritySnapshots)
+    ? school.prioritySnapshots
+    : []
+
+  const inspections = Array.isArray(school.inspections)
+    ? school.inspections
+    : []
+
+  const issues = Array.isArray(school.issues)
+    ? school.issues
+    : []
+
+  const events = Array.isArray(school.events)
+    ? school.events
+    : []
+
+  snapshots.forEach((snapshot, index) => {
+    entries.push({
+      id: `assessment-${snapshot.id ?? index}`,
+      type: 'Priority Assessment',
+      title: 'Priority Score Recorded',
+      date: snapshot.snapshotDate,
+      description: `Priority: ${formatPriority(snapshot.priorityScore)}`,
+      details: `Active: ${
+        snapshot.activeIssues ?? 'N/A'
+      } | Under Resolution: ${
+        snapshot.underResolutionIssues ?? 'N/A'
+      } | Resolved: ${
+        snapshot.resolvedIssues ?? 'N/A'
+      }`,
+    })
+  })
+
+  inspections.forEach((inspection, index) => {
+    entries.push({
+      id: `inspection-${inspection.id ?? index}`,
+      type: 'Inspection',
+      title: inspection.inspectionType ?? 'School Inspection',
+      date: inspection.inspectionDate,
+      description: inspection.remarks ?? 'No remarks available',
+      details: `Inspector: ${
+        inspection.inspectorName ?? 'Not available'
+      }`,
+    })
+  })
+
+  issues.forEach((issue, index) => {
+    entries.push({
+      id: `issue-${issue.id ?? index}`,
+      type: 'Issue Reported',
+      title: issue.issueType ?? 'School Issue',
+      date: issue.firstDetected,
+      description:
+        issue.issueTypeDescription ??
+        'No description available',
+      details: `Current Status: ${issue.status ?? 'Unknown'}`,
+    })
+  })
+
+  events.forEach((event, index) => {
+    entries.push({
+      id: `event-${event.id ?? index}`,
+      type: 'School Event',
+      title: event.eventType ?? 'School Event',
+      date: event.eventDate,
+      description:
+        event.detailedDescription ??
+        'No description available',
+      details: `Location: ${event.location ?? 'Not available'}`,
+    })
+  })
+
+  return entries.sort((a, b) => {
+    const aTime = a.date
+      ? new Date(a.date).getTime()
+      : 0
+
+    const bTime = b.date
+      ? new Date(b.date).getTime()
+      : 0
+
+    const validA = Number.isFinite(aTime) ? aTime : 0
+    const validB = Number.isFinite(bTime) ? bTime : 0
+
+    return validB - validA
+  })
+}
+
+
 function SchoolDetails({ school, onBack }) {
   if (!school) {
     return <p>No school selected.</p>
@@ -135,6 +253,9 @@ function SchoolDetails({ school, onBack }) {
       new Date(b.snapshotDate ?? 0) -
       new Date(a.snapshotDate ?? 0)
   )[0]
+  const activityTimeline = isBackendSchool
+    ? buildSchoolTimeline(school)
+    : []
 
   return (
     <div className="school-details-page">
@@ -160,12 +281,12 @@ function SchoolDetails({ school, onBack }) {
         <span
           className={`priority-badge ${
             isBackendSchool
-              ? 'priority-not-assessed'
+              ? getPriorityDetails(latestSnapshot?.priorityScore).className
               : `priority-${school.priority.toLowerCase().replace(/\s+/g, '-')}`
           }`}
         >
           {isBackendSchool
-            ? `Priority Score: ${latestSnapshot?.priorityScore ?? 'Not available'}`
+            ? formatPriority(latestSnapshot?.priorityScore)
             : school.priority}
         </span>
       </div>
@@ -187,7 +308,7 @@ function SchoolDetails({ school, onBack }) {
                   Assessment Date: {formatDate(snapshot.snapshotDate)}
                 </p>
                 <p>
-                  Priority Score: {snapshot.priorityScore ?? 'Not available'}
+                  Priority Level: {formatPriority(snapshot.priorityScore)}
                 </p>
                 <p>
                   Active Issues: {snapshot.activeIssues ?? 'Not available'}
@@ -430,56 +551,80 @@ function SchoolDetails({ school, onBack }) {
         </div>
       )}
 
-      <div className="school-evidence-section">
-        <div className="evidence-heading">
-          <h2>Evidence Timeline</h2>
-          <span className="demo-label">
-            {isBackendSchool ? 'Backend Data' : 'Demo Data'}
-          </span>
-        </div>
+      
+<div className="school-evidence-section">
+  <div className="evidence-heading">
+    <h2>School Activity Timeline</h2>
 
-        {isBackendSchool ? (
-          <p>
-            School and issue document metadata is displayed above.
-            Document downloads and independent evidence verification
-            are not yet connected.
-          </p>
-        ) : evidence.length > 0 ? (
-          <div className="evidence-timeline">
-            {evidence.map((item) => (
-              <div
-                className="evidence-item"
-                key={item.id}
-              >
-                <div className="evidence-dot"></div>
+    <span className="demo-label">
+      {isBackendSchool ? 'Backend Data' : 'Demo Data'}
+    </span>
+  </div>
 
-                <div className="evidence-content">
-                  <span className="evidence-date">
-                    {item.date}
-                  </span>
+  {isBackendSchool ? (
+    activityTimeline.length > 0 ? (
+      <div className="evidence-timeline">
+        {activityTimeline.map((item) => (
+          <div className="evidence-item" key={item.id}>
+            <div className="evidence-dot"></div>
 
-                  <h3>{item.title}</h3>
+            <div className="evidence-content">
+              <span className="evidence-date">
+                {formatDate(item.date)}
+              </span>
 
-                  <span className="evidence-type">
-                    {item.type}
-                  </span>
+              <h3>{item.title}</h3>
 
-                  <p>{item.description}</p>
+              <span className="evidence-type">
+                {item.type}
+              </span>
 
-                  <div className="evidence-source">
-                    Source: {item.source}
-                  </div>
-                </div>
+              <p>{item.description}</p>
+
+              <div className="evidence-source">
+                {item.details}
               </div>
-            ))}
+            </div>
           </div>
-        ) : (
-          <p>
-            No demonstration evidence records are available
-            for this school.
-          </p>
-        )}
+        ))}
       </div>
+    ) : (
+      <p>
+        No dated activity or assessment records
+        are available for this school.
+      </p>
+    )
+  ) : evidence.length > 0 ? (
+    <div className="evidence-timeline">
+      {evidence.map((item) => (
+        <div className="evidence-item" key={item.id}>
+          <div className="evidence-dot"></div>
+
+          <div className="evidence-content">
+            <span className="evidence-date">
+              {item.date}
+            </span>
+
+            <h3>{item.title}</h3>
+
+            <span className="evidence-type">
+              {item.type}
+            </span>
+
+            <p>{item.description}</p>
+
+            <div className="evidence-source">
+              Source: {item.source}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p>No demonstration evidence available.</p>
+  )}
+</div>
+
     </div>
   )
 }

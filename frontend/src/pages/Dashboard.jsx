@@ -9,6 +9,21 @@ import {
 import './Dashboard.css'
 import { demoSchools } from '../data/demoSchools'
 
+function getPriorityLabel(score) {
+  const labels = {
+    0: 'No Priority',
+    1: 'Low Priority',
+    2: 'Medium Priority',
+    3: 'High Priority',
+  }
+
+  if (score === null || score === undefined) {
+    return 'Not Assessed'
+  }
+
+  return labels[score] ?? `Score ${score}`
+}
+
 function getLatestSnapshot(school) {
   const snapshots = Array.isArray(school.prioritySnapshots)
     ? school.prioritySnapshots
@@ -23,7 +38,10 @@ function getLatestSnapshot(school) {
   })[0] ?? null
 }
 
-function Dashboard({ schools = demoSchools }) {
+function Dashboard({
+  schools = demoSchools,
+  onSchoolSelect,
+}) {
   const isBackendData = schools !== demoSchools
 
   const latestSnapshots = isBackendData
@@ -126,20 +144,27 @@ function Dashboard({ schools = demoSchools }) {
         },
       ]
 
+  const prioritySchools = isBackendData
+    ? schools
+        .map((school) => ({
+          school,
+          snapshot: getLatestSnapshot(school),
+        }))
+        .filter(
+          ({ snapshot }) =>
+            snapshot?.priorityScore != null
+        )
+        .sort(
+          (a, b) =>
+            Number(b.snapshot.priorityScore) -
+            Number(a.snapshot.priorityScore)
+        )
+    : []
+
   return (
     <div className="dashboard">
       <div className="dashboard-heading">
         <h1>Dashboard Overview</h1>
-
-        <p>
-          School Evidence & Inspection Priority System
-        </p>
-
-        <p className="dashboard-demo-note">
-          {isBackendData
-            ? `Showing ${schools.length} top-priority school records from Spring Boot and MySQL. The backend ranks up to 50 schools by their latest priority scores. Schools without priority assessments are excluded. These are not statewide totals.`
-            : 'Statistics are based on demonstration data.'}
-        </p>
       </div>
 
       <div className="stats-grid">
@@ -172,6 +197,106 @@ function Dashboard({ schools = demoSchools }) {
           )
         })}
       </div>
+
+      {isBackendData && (
+        <section className="dashboard-priority-section">
+          <div className="dashboard-priority-header">
+            <div>
+              <h2>Top Priority Schools</h2>
+              <p>
+                Schools ranked by their latest recorded
+                priority score
+              </p>
+            </div>
+
+            <span className="dashboard-school-count">
+              {prioritySchools.length} schools
+            </span>
+          </div>
+
+          {prioritySchools.length === 0 ? (
+            <p className="dashboard-empty">
+              No priority-assessed schools available.
+            </p>
+          ) : (
+            <div className="dashboard-table-wrapper">
+              <table className="dashboard-school-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>School Name</th>
+                    <th>District</th>
+                    <th>School ID</th>
+                    <th>Priority Level</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {prioritySchools.map(
+                    ({ school, snapshot }, index) => {
+                      const schoolKey =
+                        school.id ??
+                        school.schoolId ??
+                        index
+
+                      const schoolName =
+                        school.schoolName ??
+                        school.name ??
+                        'Unnamed School'
+
+                      const schoolId =
+                        school.schoolId ??
+                        school.id ??
+                        'N/A'
+
+                      return (
+                        <tr key={schoolKey}>
+                          <td>{index + 1}</td>
+
+                          <td>
+                            {typeof onSchoolSelect ===
+                            'function' ? (
+                              <button
+                                type="button"
+                                className="dashboard-school-link"
+                                onClick={() =>
+                                  onSchoolSelect(school)
+                                }
+                              >
+                                {schoolName}
+                              </button>
+                            ) : (
+                              <span className="dashboard-school-name">
+                                {schoolName}
+                              </span>
+                            )}
+                          </td>
+
+                          <td>
+                            {school.district ?? 'N/A'}
+                          </td>
+
+                          <td>{schoolId}</td>
+
+                          <td>
+                            <span className="dashboard-score">
+                              {getPriorityLabel(
+                                snapshot.priorityScore
+                              )}
+                              {' '}
+                              (Score {snapshot.priorityScore})
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    }
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   )
 }

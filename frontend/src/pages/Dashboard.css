@@ -119,3 +119,132 @@
   font-size: 13px;
   margin-top: 8px;
 }
+
+
+/* Top Priority Schools */
+
+.dashboard-priority-section {
+  margin-top: 30px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.dashboard-priority-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.dashboard-priority-header h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  color: #111827;
+}
+
+.dashboard-priority-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.dashboard-school-count {
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dashboard-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.dashboard-school-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.dashboard-school-table th {
+  padding: 14px 16px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dashboard-school-table td {
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  color: #334155;
+}
+
+.dashboard-school-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.dashboard-school-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.dashboard-school-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dashboard-school-link {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: #2563eb;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dashboard-school-link:hover {
+  text-decoration: underline;
+}
+
+.dashboard-school-link:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.dashboard-score {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.dashboard-empty {
+  padding: 20px 0;
+  color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .dashboard-priority-section {
+    padding: 16px;
+  }
+
+  .dashboard-priority-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+

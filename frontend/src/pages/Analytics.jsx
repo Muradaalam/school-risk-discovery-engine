@@ -25,6 +25,29 @@ const chartColors = [
   '#64748b',
 ]
 
+const PRIORITY_LEVELS = [
+  {
+    score: 0,
+    name: 'No Priority (0)',
+    color: '#22c55e',
+  },
+  {
+    score: 1,
+    name: 'Low (1)',
+    color: '#84cc16',
+  },
+  {
+    score: 2,
+    name: 'Medium (2)',
+    color: '#f59e0b',
+  },
+  {
+    score: 3,
+    name: 'High (3)',
+    color: '#ef4444',
+  },
+]
+
 function getLatestSnapshot(school) {
   const snapshots = Array.isArray(school.prioritySnapshots)
     ? school.prioritySnapshots
@@ -65,9 +88,7 @@ function Analytics({ schools = demoSchools }) {
     const snapshots = schools.map(getLatestSnapshot)
 
     const assessedSchools = snapshots.filter(
-      (snapshot) =>
-        snapshot?.priorityScore !== null &&
-        snapshot?.priorityScore !== undefined
+      (snapshot) => snapshot?.priorityScore != null
     ).length
 
     const issues = schools.flatMap((school) =>
@@ -83,26 +104,42 @@ function Analytics({ schools = demoSchools }) {
     const scoreCounts = new Map()
 
     snapshots.forEach((snapshot) => {
-      if (
-        snapshot?.priorityScore !== null &&
-        snapshot?.priorityScore !== undefined
-      ) {
-        const score = String(snapshot.priorityScore)
+      if (snapshot?.priorityScore != null) {
+        const score = Number(snapshot.priorityScore)
 
-        scoreCounts.set(
-          score,
-          (scoreCounts.get(score) ?? 0) + 1
-        )
+        if (Number.isFinite(score)) {
+          scoreCounts.set(
+            score,
+            (scoreCounts.get(score) ?? 0) + 1
+          )
+        }
       }
     })
 
-    const scoreData = [...scoreCounts.entries()]
-      .sort((a, b) => Number(b[0]) - Number(a[0]))
-      .map(([score, count], index) => ({
+    // Always display all four priority levels,
+    // including those with zero schools.
+    const scoreData = PRIORITY_LEVELS.map((level) => ({
+      name: level.name,
+      count: scoreCounts.get(level.score) ?? 0,
+      color: level.color,
+    }))
+
+    // Preserve unexpected scores instead of hiding data.
+    const extraScores = [...scoreCounts.entries()]
+      .filter(
+        ([score]) =>
+          !PRIORITY_LEVELS.some(
+            (level) => level.score === score
+          )
+      )
+      .sort((a, b) => a[0] - b[0])
+      .map(([score, count]) => ({
         name: `Score ${score}`,
         count,
-        color: chartColors[index % chartColors.length],
+        color: '#64748b',
       }))
+
+    scoreData.push(...extraScores)
 
     const issueTypeData = countBy(
       issues,
@@ -139,11 +176,10 @@ function Analytics({ schools = demoSchools }) {
           <h1>Top Priority School Analytics</h1>
 
           <p>
-            Live analytics from {totalSchools} school records
-            returned by the Top 50 priority-ranked schools API.
-            Only schools with priority assessments are eligible.
-            Numeric scores are shown as recorded, without an
-            assumed High/Medium/Low mapping.
+            Analytics based on {totalSchools} school records
+            returned by the Top 50 priority-ranked API.
+            The charts use the latest recorded priority
+            assessment for each school.
           </p>
         </div>
 
@@ -164,39 +200,67 @@ function Analytics({ schools = demoSchools }) {
             <h2>Priority Score Distribution</h2>
 
             <div className="analytics-chart">
-              {scoreData.length > 0 ? (
-                <ResponsiveContainer
-                  width="100%"
-                  height="100%"
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+              >
+                <BarChart
+                  data={scoreData}
+                  margin={{
+                    top: 10,
+                    right: 10,
+                    left: 0,
+                    bottom: 10,
+                  }}
                 >
-                  <BarChart data={scoreData}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                    />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                  />
 
-                    <XAxis dataKey="name" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
+                  <XAxis
+                    dataKey="name"
+                    interval={0}
+                    tick={{
+                      fontSize: 11,
+                    }}
+                    tickMargin={10}
+                  />
 
-                    <Bar
-                      dataKey="count"
-                      name="Schools"
-                      radius={[6, 6, 0, 0]}
-                    >
-                      {scoreData.map((item) => (
-                        <Cell
-                          key={item.name}
-                          fill={item.color}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <p>No priority scores available.</p>
-              )}
+                  <YAxis
+                    allowDecimals={false}
+                    domain={[0, 'auto']}
+                  />
+
+                  <Tooltip />
+
+                  <Bar
+                    dataKey="count"
+                    name="Schools"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={70}
+                  >
+                    {scoreData.map((item) => (
+                      <Cell
+                        key={item.name}
+                        fill={item.color}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
+
+            <p
+              style={{
+                fontSize: '12px',
+                color: '#64748b',
+                marginTop: '8px',
+              }}
+            >
+              All priority levels are displayed, including
+              levels with zero schools.
+            </p>
           </div>
 
           <div className="analytics-chart-card">
@@ -282,14 +346,14 @@ function Analytics({ schools = demoSchools }) {
         <p>
           Data coverage: statistics describe only the
           priority-ranked schools returned by the backend.
-          Schools without assessments are excluded, and
-          these figures are not statewide totals.
+          Schools without assessments are excluded.
+          These figures are not statewide totals.
         </p>
       </div>
     )
   }
 
-  // Original demo analytics remains unchanged.
+  // Preserve the existing demo analytics.
   const priorityData = [
     'High',
     'Medium',

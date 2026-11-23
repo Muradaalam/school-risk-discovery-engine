@@ -16,14 +16,22 @@ import {
 import 'leaflet/dist/leaflet.css'
 import './Map.css'
 
-const scoreColors = [
-  '#2563eb',
-  '#10b981',
-  '#f59e0b',
-  '#8b5cf6',
-  '#ef4444',
-  '#64748b',
+const PRIORITY_LEVELS = [
+  { score: '0', label: 'No Priority', color: '#22c55e' },
+  { score: '1', label: 'Low Priority', color: '#84cc16' },
+  { score: '2', label: 'Medium Priority', color: '#f59e0b' },
+  { score: '3', label: 'High Priority', color: '#ef4444' },
 ]
+
+function getPriorityDetails(score) {
+  if (score === null || score === undefined) {
+    return { label: 'Not Assessed', color: '#64748b' }
+  }
+
+  return PRIORITY_LEVELS.find(
+    (level) => level.score === String(score)
+  ) ?? { label: `Score ${score}`, color: '#64748b' }
+}
 
 function getLatestSnapshot(school) {
   const snapshots = Array.isArray(school.prioritySnapshots)
@@ -113,39 +121,9 @@ function Map({ schools = demoSchools }) {
   const isBackendData = schools !== demoSchools
   const [priorityFilter, setPriorityFilter] = useState('All')
 
-  const scores = isBackendData
-    ? [
-        ...new Set(
-          schools
-            .map((school) =>
-              getLatestSnapshot(school)?.priorityScore
-            )
-            .filter(
-              (score) =>
-                score !== null &&
-                score !== undefined
-            )
-            .map(String)
-        ),
-      ].sort((a, b) => Number(b) - Number(a))
-    : []
-
-  const scoreColorMap = Object.fromEntries(
-    scores.map((score, index) => [
-      score,
-      scoreColors[index % scoreColors.length],
-    ])
-  )
-
   const validFilters = isBackendData
-    ? ['All', ...scores, 'Not Assessed']
-    : [
-        'All',
-        'High',
-        'Medium',
-        'Low',
-        'Not Assessed',
-      ]
+    ? ['All', ...PRIORITY_LEVELS.map((level) => level.score), 'Not Assessed']
+    : ['All', 'High', 'Medium', 'Low', 'Not Assessed']
 
   const currentFilter = validFilters.includes(priorityFilter)
     ? priorityFilter
@@ -172,15 +150,8 @@ function Map({ schools = demoSchools }) {
       position,
       priorityScore,
       markerColor: isBackendData
-        ? (
-            priorityScore !== null
-              ? scoreColorMap[String(priorityScore)]
-              : '#64748b'
-          )
-        : (
-            priorityColors[school.priority] ??
-            '#64748b'
-          ),
+        ? getPriorityDetails(priorityScore).color
+        : priorityColors[school.priority] ?? '#64748b',
     }
   })
 
@@ -251,24 +222,17 @@ function Map({ schools = demoSchools }) {
             }
             aria-label={
               isBackendData
-                ? 'Filter by priority score'
+                ? 'Filter by priority level'
                 : 'Filter by inspection priority'
             }
           >
-            <option value="All">
-              {isBackendData
-                ? 'All Scores'
-                : 'All Priorities'}
-            </option>
+            <option value="All">All Priorities</option>
 
             {isBackendData ? (
               <>
-                {scores.map((score) => (
-                  <option
-                    key={score}
-                    value={score}
-                  >
-                    Priority Score {score}
+                {PRIORITY_LEVELS.map((level) => (
+                  <option key={level.score} value={level.score}>
+                    {level.label}
                   </option>
                 ))}
 
@@ -372,9 +336,10 @@ function Map({ schools = demoSchools }) {
                 {isBackendData ? (
                   <>
                     <p>
-                      Priority Score:{' '}
-                      {school.priorityScore ??
-                        'Not Assessed'}
+                      Priority Level:{' '}
+                      {getPriorityDetails(school.priorityScore).label}
+                      {school.priorityScore != null &&
+                        ` (Score ${school.priorityScore})`}
                     </p>
 
                     <p>
@@ -409,16 +374,13 @@ function Map({ schools = demoSchools }) {
         <div className="map-legend">
           {isBackendData ? (
             <>
-              {scores.map((score) => (
-                <span key={score}>
+              {PRIORITY_LEVELS.map((level) => (
+                <span key={level.score}>
                   <i
                     className="legend-dot"
-                    style={{
-                      backgroundColor:
-                        scoreColorMap[score],
-                    }}
+                    style={{ backgroundColor: level.color }}
                   />
-                  {' '}Score {score}
+                  {' '}{level.label} ({level.score})
                 </span>
               ))}
 
@@ -466,10 +428,9 @@ function Map({ schools = demoSchools }) {
             }}
           >
             Displaying {filteredSchools.length} mapped
-            schools after filtering. Marker colors
-            distinguish recorded numeric scores;
-            they do not represent official
-            High/Medium/Low categories.
+            schools after filtering. Marker colors indicate
+            the project's priority levels (0–3).
+            Only valid backend coordinates are mapped.
           </p>
         )}
       </div>

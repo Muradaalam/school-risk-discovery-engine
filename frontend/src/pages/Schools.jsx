@@ -7,6 +7,34 @@ import { demoSchools } from '../data/demoSchools'
 import { normalizeSchool } from '../utils/normalizeSchool'
 import { apiGet } from '../services/api'
 
+
+
+const PRIORITY_LEVELS = [
+  { value: '0', label: 'No Priority', className: 'priority-low' },
+  { value: '1', label: 'Low Priority', className: 'priority-low' },
+  { value: '2', label: 'Medium Priority', className: 'priority-medium' },
+  { value: '3', label: 'High Priority', className: 'priority-high' },
+]
+
+function getPriorityDetails(score) {
+  if (score === null || score === undefined) {
+    return {
+      label: 'Not Assessed',
+      className: 'priority-not-assessed',
+    }
+  }
+
+  return (
+    PRIORITY_LEVELS.find(
+      (level) => level.value === String(score)
+    ) ?? {
+      label: `Score ${score}`,
+      className: 'priority-not-assessed',
+    }
+  )
+}
+
+
 function getLatestScore(school) {
   const snapshots = Array.isArray(school.prioritySnapshots)
     ? school.prioritySnapshots
@@ -98,14 +126,7 @@ function Schools({ onSchoolSelect, schools = demoSchools }) {
     needsBackendSearch,
   ])
 
-  const availableScores = [
-    ...new Set(
-      [...schools, ...(searchResults ?? [])]
-        .map(getLatestScore)
-        .filter((score) => score != null)
-        .map(String)
-    ),
-  ].sort((a, b) => Number(b) - Number(a))
+
 
   const sourceSchools = isBackendData
     ? (
@@ -235,18 +256,18 @@ function Schools({ onSchoolSelect, schools = demoSchools }) {
               </option>
 
               {isBackendData ? (
-                <>
-                  {availableScores.map((score) => (
-                    <option key={score} value={score}>
-                      Priority Score {score}
-                    </option>
-                  ))}
+  <>
+    {PRIORITY_LEVELS.map((level) => (
+      <option key={level.value} value={level.value}>
+        {level.label}
+      </option>
+    ))}
 
-                  <option value="Not Assessed">
-                    Not Assessed
-                  </option>
-                </>
-              ) : (
+    <option value="Not Assessed">
+      Not Assessed
+    </option>
+  </>
+) : (
                 <>
                   <option value="High">High Priority</option>
                   <option value="Medium">Medium Priority</option>
@@ -332,13 +353,15 @@ function Schools({ onSchoolSelect, schools = demoSchools }) {
                     <td>{school.evidenceCount ?? 0}</td>
 
                     <td>
-                      {isBackendData ? (
-                        <span className="priority-badge priority-not-assessed">
-                          {item.score != null
-                            ? `Score ${item.score}`
-                            : 'Not Assessed'}
-                        </span>
-                      ) : (
+{isBackendData ? (
+  <span
+    className={`priority-badge ${
+      getPriorityDetails(item.score).className
+    }`}
+  >
+    {getPriorityDetails(item.score).label}
+  </span>
+) : (
                         <span
                           className={`priority-badge priority-${String(
                             school.priority

@@ -94,7 +94,12 @@ function App() {
 
       case 'Dashboard':
       default:
-        return <Dashboard schools={realSchools} />
+        return (
+  <Dashboard
+    schools={realSchools}
+    onSchoolSelect={handleSchoolSelect}
+  />
+)
     }
   }
 
