@@ -1,4 +1,4 @@
-#this code is AI generated
+# This code is AI generated
 
 import argparse
 import csv
@@ -302,7 +302,7 @@ def build_report_queue(curated_csv, scraped_jsonl, review_csv, all_csv, top_csv,
             "school_name": school["school_name"], "district": school["district"],
             "block": school["block"], "identity_status": school["identity_status"],
             "issue_state": "CURRENT_CONDITION_UNKNOWN", "eligible": True,
-            "priority_score": score, "priority_level": "HIGH" if score >= 60 else "MEDIUM",
+            "priority_score": score, "priority_level": "LOW" if score <= 55 else "MEDIUM" if score <= 85 else "HIGH",
             "repair_classrooms": 0, "incident_groups": len(groups),
             "evidence_events": len(reports), "latest_evidence_date": max(dates, default=""),
             "evidence_references": json.dumps(urls, ensure_ascii=False),

@@ -1,5 +1,4 @@
 
-"""Parse school-repair table rows from page-level PDF text."""
 
 import argparse
 import csv
@@ -14,12 +13,27 @@ from data_pipeline.normalization.udise_code import normalize_udise_code
 HEADERS = [
     "serial", "district", "constituency", "block", "school_name",
     "udise_raw", "udise_code", "udise_note", "school_type",
-    "enrollment", "repair_classrooms", "repair_amount_raw",
-    "page_number", "source_url", "pdf_sha256"
+    "school_type_raw", "enrollment", "repair_classrooms",
+    "repair_amount_raw", "parse_note", "page_number",
+    "source_url", "pdf_sha256"
 ]
 
-ROW_START = re.compile(r"^\s*\d+\s{2,}")
+ROW_START = re.compile(r"^\s*([1-9][0-9]{0,4})(?![0-9])\s{2,}")
 
+SCHOOL_TYPES = {
+    "PS": "PS",
+    "GPS": "PS",
+    "UPS": "UPS",
+    "GUPS": "UPS",
+    "SS": "SS",
+    "GSS": "SS",
+    "SSS": "SSS",
+    "GSSS": "SSS",
+    "PRIMARY": "PS",
+    "PRIMERY": "PS",
+    "UPPER PRIMARY": "UPS",
+    "UPPER PRIMERY": "UPS",
+}
 
 def columns(line: str) -> list[str]:
     return re.split(r"\s{2,}", line.strip())
@@ -51,13 +65,48 @@ def get_row_groups(text: str):
 
 
 def parse_school_row(lines: list[str], page: dict) -> dict:
-    parts = columns(lines[0])
+    if not lines:
+        raise ValueError("Empty row")
 
-    if len(parts) == 7 and len(lines) == 2:
+    parts = columns(lines[0])
+    parse_notes = []
+
+    if len(lines) == 2:
         continuation = columns(lines[1])
 
-        if len(continuation) == 4:
-            parts = [parts[0], *continuation[:3], f"{parts[1]} {continuation[3]}", *parts[2:]]
+        if len(parts) == 7 and len(continuation) == 4:
+            parts = [parts[0], *continuation[:3],
+                     f"{parts[1]} {continuation[3]}", *parts[2:]]
+            parse_notes.append("WRAPPED_SCHOOL_NAME")
+
+        elif len(parts) == 3 and len(continuation) >= 8:
+            name_parts = continuation[2:-5]
+
+            parts = [
+                parts[0],
+                parts[1],
+                f"{parts[2]} {continuation[0]}",
+                continuation[1],
+                " ".join(name_parts),
+                *continuation[-5:]
+            ]
+
+            parse_notes.append("WRAPPED_CONSTITUENCY")
+
+            if len(name_parts) > 1:
+                parse_notes.append("JOINED_SCHOOL_NAME_SEGMENTS")
+        else:
+            raise ValueError("Unrecognized multiline row layout")
+
+    elif len(lines) != 1:
+        raise ValueError("Row spans too many lines for verified parsing rule")
+
+    if len(parts) > 10:
+        if len(parts) > 12:
+            raise ValueError("Too many columns for a safely recognized row")
+
+        parts = [*parts[:4], " ".join(parts[4:-5]), *parts[-5:]]
+        parse_notes.append("JOINED_SCHOOL_NAME_SEGMENTS")
 
     if len(parts) != 10:
         raise ValueError(f"Expected 10 columns, found {len(parts)}")
@@ -67,22 +116,30 @@ def parse_school_row(lines: list[str], page: dict) -> dict:
     if not all([district, constituency, block, name]):
         raise ValueError("Missing school identity field")
 
-    if category.upper() not in {"PS", "UPS", "SS", "SSS"}:
+    category_normalized = SCHOOL_TYPES.get(category.strip().upper())
+
+    if category_normalized is None:
         raise ValueError(f"Unexpected school category: {category}")
+
+    if not re.fullmatch(r"[0-9]{10,11}", raw_udise):
+        raise ValueError(f"Unexpected UDISE format: {raw_udise}")
 
     if not all(re.fullmatch(r"[0-9]+", value) for value in (serial, enrollment, rooms)):
         raise ValueError("Invalid numeric field")
 
     try:
         number = Decimal(amount)
+
         if not number.is_finite() or number < 0:
             raise ValueError("Invalid repair amount")
+
     except InvalidOperation:
         raise ValueError("Invalid repair amount") from None
 
     try:
-        udise = normalize_udise_code(raw_udise)
-        udise_note = "VALID"
+        udise = normalize_udise_code(raw_udise) or ""
+        udise_note = "VALID" if udise else "REQUIRES_VERIFICATION"
+
     except (ValueError, TypeError):
         udise = ""
         udise_note = "REQUIRES_VERIFICATION"
@@ -96,15 +153,16 @@ def parse_school_row(lines: list[str], page: dict) -> dict:
         "udise_raw": raw_udise,
         "udise_code": udise,
         "udise_note": udise_note,
-        "school_type": category.upper(),
+        "school_type": category_normalized,
+        "school_type_raw": category,
         "enrollment": int(enrollment),
         "repair_classrooms": int(rooms),
         "repair_amount_raw": amount,
+        "parse_note": ";".join(parse_notes),
         "page_number": page["page_number"],
         "source_url": page.get("source_url"),
         "pdf_sha256": page["pdf_sha256"]
     }
-
 
 def extract_repair_rows(input_path: str | Path, csv_path: str | Path, review_path: str | Path) -> dict:
     input_path, csv_path, review_path = Path(input_path), Path(csv_path), Path(review_path)

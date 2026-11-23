@@ -1,4 +1,4 @@
-# This code is AI generated
+
 
 import argparse
 import hashlib
@@ -6,6 +6,7 @@ import json
 import re
 import time
 from datetime import datetime, timezone
+from html import unescape
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import urlparse
@@ -16,18 +17,21 @@ from bs4 import BeautifulSoup
 HOSTS = {"AKASHVANI": "newsonair.gov.in", "PIB": "pib.gov.in"}
 FEEDS = {
     "AKASHVANI": "https://newsonair.gov.in/hi/rss-feeds/",
-    "PIB": "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=1"
+    "PIB": "https://www.pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3&reg=3"
 }
 SEED_URLS = {
     "AKASHVANI": "https://newsonair.gov.in/school-tragedy-in-rajasthan-building-collapse-in-jhalawar-leaves-5-dead-20-injured/",
     "PIB": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2148897&lang=2&reg=48"
 }
-SCHOOL_TERMS = ("school", "विद्यालय", "स्कूल")
+SCHOOL_TERMS = ("school", "विद्यालय", "स्कूल", "पाठशाला", "शाला")
 ISSUE_TERMS = (
-    "collapse", "roof", "ceiling", "dilapidated", "unsafe", "repair",
+    "collaps", "roof", "ceiling", "dilapidated", "unsafe", "repair",
     "crack", "damaged", "building", "wall", "injur", "construction",
-    "जर्जर", "छत", "गिर", "मरम्मत", "भवन", "दीवार", "घायल", "ढह"
+    "जर्जर", "छत", "मरम्मत", "भवन", "दीवार", "घायल", "ढह", "क्षतिग्रस्त", "हादसा"
 )
+
+FALL_ACTION = re.compile(r"गिर(?:ने|ना|ता|ती|ते|ा(?!वट)|ी|े)")
+FALL_OBJECTS = ("स्कूल", "विद्यालय", "पाठशाला", "शाला", "छत", "दीवार", "भवन", "इमारत", "गेट", "खंभा", "खम्बा", "प्लास्टर", "लिंटर", "कमरा")
 
 
 def source_for_url(url):
@@ -46,8 +50,17 @@ def allowed_url(url, source):
 
 
 def relevant(text):
+    
     text = (text or "").casefold()
-    return any(t in text for t in SCHOOL_TERMS) and any(t in text for t in ISSUE_TERMS)
+    if not any(t in text for t in SCHOOL_TERMS):
+        return False
+    if any(t in text for t in ISSUE_TERMS):
+        return True
+    for match in FALL_ACTION.finditer(text):
+        context = text[max(0, match.start() - 70):match.end() + 70]
+        if any(t in context for t in FALL_OBJECTS):
+            return True
+    return False
 
 
 def iso_date(text):
@@ -59,6 +72,13 @@ def iso_date(text):
         try:
             return parsedate_to_datetime(text).date().isoformat()
         except (ValueError, TypeError, IndexError):
+            pass
+    
+    numeric_date = re.search(r"\b(\d{2}-\d{2}-\d{4})\b", text)
+    if numeric_date:
+        try:
+            return datetime.strptime(numeric_date.group(1), "%d-%m-%Y").date().isoformat()
+        except ValueError:
             pass
     for fmt in ("%B %d, %Y", "%b %d, %Y", "%d %B %Y", "%d %b %Y"):
         match = re.search(
@@ -75,24 +95,30 @@ def iso_date(text):
 
 
 def feed_entries(xml, source):
+    
+    if isinstance(xml, str):
+        xml = xml.removeprefix("ï»¿").lstrip("\ufeff")
     soup = BeautifulSoup(xml, "xml")
-    if not soup.find("rss") and not soup.find("feed"):
-        raise ValueError("Endpoint returned a page, not RSS/Atom XML")
+    if not soup.find("rss") and not soup.find("feed") and not soup.find("RDF"):
+        raise ValueError("Response is not recognized as RSS/Atom XML")
+
     entries = []
     for item in soup.find_all(["item", "entry"]):
         link = item.find("link")
         url = link.get("href", "") if link and link.get("href") else (
             link.get_text(strip=True) if link else ""
         )
+        url = unescape(url)
         if not allowed_url(url, source):
             continue
         title = item.find("title")
         summary = item.find("description") or item.find("summary")
         date = item.find("pubDate") or item.find("published") or item.find("updated")
-        summary_text = BeautifulSoup(summary.get_text(" ", strip=True), "html.parser").get_text(" ", strip=True) if summary else ""
+        raw_summary = summary.get_text(" ", strip=True) if summary else ""
+        summary_text = BeautifulSoup(unescape(raw_summary), "html.parser").get_text(" ", strip=True)
         entries.append({
             "url": url,
-            "title": title.get_text(" ", strip=True) if title else "",
+            "title": unescape(title.get_text(" ", strip=True)) if title else "",
             "summary": summary_text,
             "published_date": iso_date(date.get_text(strip=True)) if date else ""
         })
@@ -164,7 +190,7 @@ def collect(output_path, max_items=40, include_seed=False, session=None,
 
     result = {"new_reports": 0, "already_seen": 0, "skipped_irrelevant": 0,
               "article_errors": 0, "feed_errors": {}, "unsupported_urls": 0,
-              "output": str(path)}
+              "feed_stats": {}, "output": str(path)}
     candidates = []
 
     if urls_file:
@@ -182,14 +208,38 @@ def collect(output_path, max_items=40, include_seed=False, session=None,
 
     if not skip_feeds:
         for source, feed in FEEDS.items():
+            stats = {"total_entries": 0, "approved_entries": 0,
+                     "school_candidates": 0, "strong_keyword_matches": 0,
+                     "queued_for_article_check": 0, "final_url": ""}
+            result["feed_stats"][source] = stats
             try:
-                response = client.get(feed, timeout=12)
+                response = client.get(feed, timeout=20)
                 response.raise_for_status()
+                stats["final_url"] = response.url
                 if not allowed_url(response.url, source):
                     raise ValueError("Feed redirected off-site")
-                entries = feed_entries(response.text, source)
-                candidates.extend(e for e in entries[:max_items]
-                                  if relevant(e["title"] + " " + e["summary"]))
+
+                
+                raw_xml = getattr(response, "content", None)
+                if not isinstance(raw_xml, (bytes, bytearray)):
+                    raw_xml = response.text  
+                soup = BeautifulSoup(raw_xml, "xml")
+                stats["total_entries"] = len(soup.find_all(["item", "entry"]))
+                entries = feed_entries(raw_xml, source)
+                stats["approved_entries"] = len(entries)
+
+                
+                school_entries = [e for e in entries if any(
+                    term in (e["title"] + " " + e["summary"]).casefold()
+                    for term in SCHOOL_TERMS
+                )]
+                stats["school_candidates"] = len(school_entries)
+                stats["strong_keyword_matches"] = sum(relevant(
+                    e["title"] + " " + e["summary"]
+                ) for e in entries)
+                selected = school_entries[:max_items]
+                stats["queued_for_article_check"] = len(selected)
+                candidates.extend(selected)
             except (requests.RequestException, ValueError) as error:
                 result["feed_errors"][source] = str(error)[:180]
 
@@ -209,7 +259,10 @@ def collect(output_path, max_items=40, include_seed=False, session=None,
                 response.raise_for_status()
                 if not allowed_url(response.url, source):
                     raise ValueError("Article redirected off-site")
-                details = article_details(response.text)
+                raw_html = getattr(response, "content", None)
+                if not isinstance(raw_html, (bytes, bytearray)):
+                    raw_html = response.text
+                details = article_details(raw_html)
             except (requests.RequestException, ValueError):
                 result["article_errors"] += 1
                 continue
@@ -233,7 +286,6 @@ def collect(output_path, max_items=40, include_seed=False, session=None,
                 time.sleep(1)
     return result
 
-
 def main():
     parser = argparse.ArgumentParser(description="Extract public school-infrastructure articles")
     parser.add_argument("output")
@@ -244,7 +296,6 @@ def main():
     args = parser.parse_args()
     print(json.dumps(collect(args.output, args.max_items, args.seed,
                              skip_feeds=args.skip_feeds, urls_file=args.urls_file), indent=2))
-
 
 if __name__ == "__main__":
     main()

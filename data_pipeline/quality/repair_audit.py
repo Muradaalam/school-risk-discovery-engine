@@ -1,5 +1,4 @@
 
-"""Audit structured school records against the extracted PDF pages."""
 
 import argparse
 import csv
@@ -8,7 +7,8 @@ import re
 from collections import Counter
 from pathlib import Path
 
-ROW_START = re.compile(r"^\s*(\d+)\s{2,}")
+ROW_START = re.compile(r"^\s*([1-9][0-9]{0,4})(?![0-9])\s{2,}")
+LONG_NUMBER = re.compile(r"^\s*([0-9]{6,})\s{2,}")
 
 
 def page_rows(text: str) -> list[int]:
@@ -42,6 +42,7 @@ def audit_repair_rows(pages_path: str | Path, csv_path: str | Path, review_path:
     page_numbers = []
     page_hashes = set()
     empty_pages = []
+    long_number_lines = []
 
     with pages_path.open(encoding="utf-8") as file:
         for line in file:
@@ -58,6 +59,14 @@ def audit_repair_rows(pages_path: str | Path, csv_path: str | Path, review_path:
 
             for serial in page_rows(page["text"]):
                 raw_rows[(number, serial)] += 1
+            for text_line in page["text"].splitlines():
+                match = LONG_NUMBER.match(text_line)
+
+                if match:
+                    long_number_lines.append({
+                        "page": number,
+                        "number": match.group(1)
+                    })
 
     parsed_rows = Counter()
     unverified_udise = 0
@@ -138,6 +147,8 @@ def audit_repair_rows(pages_path: str | Path, csv_path: str | Path, review_path:
         warnings.append("Gaps appear in source serial numbers")
     if empty_pages:
         warnings.append("Some pages have no extracted text")
+    if long_number_lines:
+        warnings.append("Some lines start with six or more digits and were not treated as school serials")
 
     report = {
         "status": "FAILED" if errors else "REVIEW" if warnings else "CONSISTENT",
@@ -158,6 +169,8 @@ def audit_repair_rows(pages_path: str | Path, csv_path: str | Path, review_path:
         "serial_gap_count": serial_gap_count,
         "serial_gaps": serial_gaps,
         "empty_pages": empty_pages[:30],
+        "long_numeric_line_count": len(long_number_lines),
+        "long_numeric_examples": long_number_lines[:15],
         "errors": errors,
         "warnings": warnings,
         "note": "Structural consistency is not proof that PDF columns were parsed correctly. Manually compare sample rows."
