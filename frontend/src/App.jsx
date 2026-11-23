@@ -1,38 +1,57 @@
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
 import Sidebar from './components/Sidebar'
 import Navbar from './components/Navbar'
+
 import Dashboard from './pages/Dashboard'
 import Schools from './pages/Schools'
 import SchoolDetails from './pages/SchoolDetails'
-import './App.css'
 import Map from './pages/Map'
 import Analytics from './pages/Analytics'
-// import Loading from './components/Loading'
-// import ErrorMessage from './components/ErrorMessage'
-import BackendSchoolTest from './pages/BackendSchoolTest'
-import { getKnownSchools } from './services/api'
+
+import { getTop50Schools } from './services/api'
+
+import './App.css'
 
 function App() {
   const [activePage, setActivePage] = useState('Dashboard')
   const [selectedSchool, setSelectedSchool] = useState(null)
-  const [realSchools, setRealSchools] = useState(null)
-  const [schoolsLoading, setSchoolsLoading] = useState(false)
-  const [schoolsError, setSchoolsError] = useState('')
-  const [schoolToken, setSchoolToken] = useState('')
-  async function loadRealSchools(token) {
-  setSchoolsLoading(true)
-  setSchoolsError('')
 
-  try {
-    const schools = await getKnownSchools(token)
-    setRealSchools(schools)
-  } catch (error) {
-    setSchoolsError(error.message)
-  } finally {
-    setSchoolsLoading(false)
-  }
-}
+  const [realSchools, setRealSchools] = useState([])
+  const [schoolsLoading, setSchoolsLoading] = useState(true)
+  const [schoolsError, setSchoolsError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadSchools() {
+      setSchoolsLoading(true)
+      setSchoolsError('')
+
+      try {
+        const schools = await getTop50Schools()
+
+        if (!cancelled) {
+          setRealSchools(schools)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setSchoolsError(error.message)
+        }
+      } finally {
+        if (!cancelled) {
+          setSchoolsLoading(false)
+        }
+      }
+    }
+
+    loadSchools()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   function handlePageChange(page) {
     setActivePage(page)
@@ -51,15 +70,13 @@ function App() {
 
   function renderPage() {
     switch (activePage) {
-      case 'BackendSchoolTest':
-  return <BackendSchoolTest />
       case 'Schools':
-  return (
-    <Schools
-      schools={realSchools ?? undefined}
-      onSchoolSelect={handleSchoolSelect}
-    />
-  )
+        return (
+          <Schools
+            schools={realSchools}
+            onSchoolSelect={handleSchoolSelect}
+          />
+        )
 
       case 'SchoolDetails':
         return (
@@ -68,15 +85,16 @@ function App() {
             onBack={handleBackToSchools}
           />
         )
-case 'Map':
-  return <Map schools={realSchools ?? undefined} />
-      
-case 'Analytics':
-  return <Analytics schools={realSchools ?? undefined} />
+
+      case 'Map':
+        return <Map schools={realSchools} />
+
+      case 'Analytics':
+        return <Analytics schools={realSchools} />
+
       case 'Dashboard':
-default:
-  return <Dashboard schools={realSchools ?? undefined} />
-      
+      default:
+        return <Dashboard schools={realSchools} />
     }
   }
 
@@ -94,40 +112,45 @@ default:
       <div className="main-area">
         <Navbar />
 
-<main className="main-content">
-  <form
-    onSubmit={(event) => {
-      event.preventDefault()
-      loadRealSchools(schoolToken.trim())
-    }}
-    style={{
-      display: 'flex',
-      gap: '10px',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      marginBottom: '20px',
-    }}
-  >
-    <input
-      type="password"
-      placeholder="Enter fresh backend JWT"
-      value={schoolToken}
-      onChange={(event) => setSchoolToken(event.target.value)}
-      autoComplete="off"
-      required
-      style={{ padding: '10px', minWidth: '250px' }}
-    />
+        <main className="main-content">
+          {schoolsLoading ? (
+            <div
+              role="status"
+              style={{
+                padding: '24px',
+                textAlign: 'center',
+              }}
+            >
+              <h2>Loading school data...</h2>
+              <p>
+                Fetching the latest priority-ranked
+                schools from the backend.
+              </p>
+            </div>
+          ) : schoolsError ? (
+            <div
+              role="alert"
+              style={{
+                padding: '24px',
+                borderRadius: '12px',
+                backgroundColor: '#fef2f2',
+                color: '#991b1b',
+              }}
+            >
+              <h2>Unable to load school data</h2>
 
-    <button type="submit" disabled={schoolsLoading}>
-      {schoolsLoading ? 'Loading...' : 'Load Real Schools'}
-    </button>
+              <p>{schoolsError}</p>
 
-    {realSchools && <span>Loaded {realSchools.length} real schools</span>}
-    {schoolsError && <p role="alert">{schoolsError}</p>}
-  </form>
-
-  {renderPage()}
-</main>
+              <p>
+                Please check that the Spring Boot backend
+                is running on port 8080, then refresh
+                the page.
+              </p>
+            </div>
+          ) : (
+            renderPage()
+          )}
+        </main>
       </div>
     </div>
   )

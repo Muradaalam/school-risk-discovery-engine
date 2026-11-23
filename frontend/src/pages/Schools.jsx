@@ -1,98 +1,180 @@
 
-import './Schools.css'
-
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Search, Filter } from 'lucide-react'
+
+import './Schools.css'
 import { demoSchools } from '../data/demoSchools'
 import { normalizeSchool } from '../utils/normalizeSchool'
+import { apiGet } from '../services/api'
 
-function getLatestSnapshot(school) {
+function getLatestScore(school) {
   const snapshots = Array.isArray(school.prioritySnapshots)
     ? school.prioritySnapshots
     : []
 
-  return [...snapshots].sort(
-    (a, b) => {
-      const dateDifference =
-        new Date(b.snapshotDate ?? 0) -
-        new Date(a.snapshotDate ?? 0)
+  const latest = [...snapshots].sort((a, b) => {
+    const dateDifference =
+      new Date(b.snapshotDate ?? 0) -
+      new Date(a.snapshotDate ?? 0)
 
-      return dateDifference || (b.id ?? 0) - (a.id ?? 0)
-    }
-  )[0] ?? null
+    return dateDifference || (b.id ?? 0) - (a.id ?? 0)
+  })[0]
+
+  return latest?.priorityScore ?? null
 }
 
 function Schools({ onSchoolSelect, schools = demoSchools }) {
+  const isBackendData = schools !== demoSchools
+
   const [searchTerm, setSearchTerm] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('All')
 
-  const isBackendData = schools !== demoSchools
+  const [searchResults, setSearchResults] = useState(null)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchError, setSearchError] = useState('')
 
-  const normalizedSchools = schools.map((school) => {
-    const normalized = normalizeSchool(school)
+  const searchQuery = searchTerm.trim()
+  const needsBackendSearch =
+    isBackendData &&
+    (searchQuery !== '' || priorityFilter !== 'All')
 
-    if (!isBackendData) {
-      return normalized
-    }
+  useEffect(() => {
+    let cancelled = false
 
-    const snapshot = getLatestSnapshot(school)
-
-    return {
-      ...normalized,
-      latestPriorityScore: snapshot?.priorityScore ?? null,
-    }
-  })
-
-  const availableScores = [
-    ...new Set(
-      normalizedSchools
-        .map((school) => school.latestPriorityScore)
-        .filter((score) => score !== null && score !== undefined)
-        .map(String)
-    ),
-  ].sort((a, b) => Number(a) - Number(b))
-
-  const filteredSchools = normalizedSchools.filter((school) => {
-    const search = searchTerm.toLowerCase().trim()
-
-    const matchesSearch =
-      String(school.name ?? '').toLowerCase().includes(search) ||
-      String(school.district ?? '').toLowerCase().includes(search) ||
-      String(school.udise ?? '').toLowerCase().includes(search)
-
-    let matchesPriority = priorityFilter === 'All'
-
-    if (!matchesPriority && isBackendData) {
-      if (priorityFilter === 'Not Assessed') {
-        matchesPriority =
-          school.latestPriorityScore === null ||
-          school.latestPriorityScore === undefined
-      } else {
-        matchesPriority =
-          String(school.latestPriorityScore) === priorityFilter
+    if (!needsBackendSearch) {
+      return () => {
+        cancelled = true
       }
     }
 
-    if (!matchesPriority && !isBackendData) {
-      matchesPriority = school.priority === priorityFilter
+    const timer = setTimeout(async () => {
+      if (cancelled) return
+
+      setSearchLoading(true)
+      setSearchError('')
+
+      try {
+        const params = new URLSearchParams()
+        params.set('query', searchQuery)
+
+        if (
+          priorityFilter !== 'All' &&
+          priorityFilter !== 'Not Assessed'
+        ) {
+          params.set('priorityScore', priorityFilter)
+        }
+
+        const results = await apiGet(
+          `/school-service/school/search?${params.toString()}`
+        )
+
+        if (!Array.isArray(results)) {
+          throw new Error('Invalid response from school search API')
+        }
+
+        if (!cancelled) {
+          setSearchResults(results)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setSearchResults([])
+          setSearchError(error.message)
+        }
+      } finally {
+        if (!cancelled) {
+          setSearchLoading(false)
+        }
+      }
+    }, 400)
+
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
     }
+  }, [
+    searchQuery,
+    priorityFilter,
+    isBackendData,
+    needsBackendSearch,
+  ])
+
+  const availableScores = [
+    ...new Set(
+      [...schools, ...(searchResults ?? [])]
+        .map(getLatestScore)
+        .filter((score) => score != null)
+        .map(String)
+    ),
+  ].sort((a, b) => Number(b) - Number(a))
+
+  const sourceSchools = isBackendData
+    ? (
+        needsBackendSearch
+          ? (searchResults ?? [])
+          : schools
+      )
+    : schools
+
+  const preparedSchools = sourceSchools.map((school) => ({
+    original: school,
+    normalized: normalizeSchool(school),
+    score: isBackendData ? getLatestScore(school) : null,
+  }))
+
+  const filteredSchools = preparedSchools.filter((item) => {
+    const { original, normalized, score } = item
+
+    if (isBackendData) {
+      if (priorityFilter === 'Not Assessed') {
+        return score == null
+      }
+
+      if (priorityFilter === 'All') {
+        return true
+      }
+
+      return String(score) === priorityFilter
+    }
+
+    const query = searchQuery.toLowerCase()
+
+    const matchesSearch =
+      !query ||
+      String(normalized.name ?? '')
+        .toLowerCase()
+        .includes(query) ||
+      String(normalized.district ?? '')
+        .toLowerCase()
+        .includes(query) ||
+      String(normalized.udise ?? '')
+        .toLowerCase()
+        .includes(query) ||
+      String(original.id ?? '')
+        .toLowerCase()
+        .includes(query)
+
+    const matchesPriority =
+      priorityFilter === 'All' ||
+      normalized.priority === priorityFilter
 
     return matchesSearch && matchesPriority
   })
 
+  function selectSchool(item) {
+    onSchoolSelect(
+      isBackendData ? item.original : item.normalized
+    )
+  }
+
   return (
     <div className="schools-page">
       <div className="schools-heading">
-        <h1>
-          {isBackendData
-            ? 'Top Priority Schools'
-            : 'Schools Directory'}
-        </h1>
+        <h1>Schools Directory</h1>
 
         <p>
           {isBackendData
-            ? 'Schools ranked by their latest recorded priority score. The backend returns up to 50 assessed schools.'
-            : 'Explore school records, evidence, and inspection priorities.'}
+            ? 'Search school records directly from MySQL by name, ID, UDISE code, district, or priority score.'
+            : 'Explore demonstration school records and inspection priorities.'}
         </p>
       </div>
 
@@ -100,7 +182,11 @@ function Schools({ onSchoolSelect, schools = demoSchools }) {
         <div className="schools-table-header">
           <h2>
             {isBackendData
-              ? 'Top 50 Assessed Schools'
+              ? (
+                  needsBackendSearch
+                    ? 'Database Search Results'
+                    : 'Top Priority Schools'
+                )
               : 'All Schools'}
           </h2>
 
@@ -114,12 +200,19 @@ function Schools({ onSchoolSelect, schools = demoSchools }) {
             <Search size={18} />
 
             <input
-              type="text"
-              placeholder="Search by school, district, or UDISE..."
-              value={searchTerm}
-              onChange={(event) =>
-                setSearchTerm(event.target.value)
+              type="search"
+              placeholder={
+                isBackendData
+                  ? 'Search name, ID, UDISE or district...'
+                  : 'Search school, district or UDISE...'
               }
+              value={searchTerm}
+              onChange={(event) => {
+                setSearchTerm(event.target.value)
+                setSearchResults(null)
+                setSearchError('')
+              }}
+              aria-label="Search schools"
             />
           </div>
 
@@ -128,14 +221,12 @@ function Schools({ onSchoolSelect, schools = demoSchools }) {
 
             <select
               value={priorityFilter}
-              onChange={(event) =>
+              onChange={(event) => {
                 setPriorityFilter(event.target.value)
-              }
-              aria-label={
-                isBackendData
-                  ? 'Filter by priority score'
-                  : 'Filter by inspection priority'
-              }
+                setSearchResults(null)
+                setSearchError('')
+              }}
+              aria-label="Filter schools by priority"
             >
               <option value="All">
                 {isBackendData
@@ -169,6 +260,32 @@ function Schools({ onSchoolSelect, schools = demoSchools }) {
           </div>
         </div>
 
+        {isBackendData && (
+          <p
+            style={{
+              margin: '12px 0',
+              fontSize: '13px',
+              color: '#64748b',
+            }}
+          >
+            {needsBackendSearch
+              ? 'Searching the full school database. Results update automatically as you type.'
+              : 'Showing up to 50 assessed schools. Start typing to search the full database.'}
+          </p>
+        )}
+
+        {searchLoading && (
+          <p role="status" style={{ color: '#2563eb' }}>
+            Searching database...
+          </p>
+        )}
+
+        {searchError && (
+          <p role="alert" style={{ color: '#b91c1c' }}>
+            Search failed: {searchError}
+          </p>
+        )}
+
         <div className="schools-table-wrapper">
           <table className="schools-table">
             <thead>
@@ -186,53 +303,56 @@ function Schools({ onSchoolSelect, schools = demoSchools }) {
             </thead>
 
             <tbody>
-              {filteredSchools.map((school) => (
-                <tr
-                  key={school.id}
-                  className="clickable-school-row"
-                  onClick={() => onSchoolSelect(school)}
-                  tabIndex={0}
-                  role="button"
-                  onKeyDown={(event) => {
-                    if (
-                      event.key === 'Enter' ||
-                      event.key === ' '
-                    ) {
-                      event.preventDefault()
-                      onSchoolSelect(school)
-                    }
-                  }}
-                >
-                  <td className="school-name">
-                    {school.name}
-                  </td>
+              {filteredSchools.map((item) => {
+                const school = item.normalized
 
-                  <td>{school.udise}</td>
+                return (
+                  <tr
+                    key={item.original.id}
+                    className="clickable-school-row"
+                    onClick={() => selectSchool(item)}
+                    tabIndex={0}
+                    role="button"
+                    onKeyDown={(event) => {
+                      if (
+                        event.key === 'Enter' ||
+                        event.key === ' '
+                      ) {
+                        event.preventDefault()
+                        selectSchool(item)
+                      }
+                    }}
+                  >
+                    <td className="school-name">
+                      {school.name}
+                    </td>
 
-                  <td>{school.district}</td>
+                    <td>{school.udise}</td>
+                    <td>{school.district}</td>
+                    <td>{school.evidenceCount ?? 0}</td>
 
-                  <td>{school.evidenceCount}</td>
-
-                  <td>
-                    {isBackendData ? (
-                      <span className="priority-badge priority-not-assessed">
-                        {school.latestPriorityScore !== null &&
-                        school.latestPriorityScore !== undefined
-                          ? `Score ${school.latestPriorityScore}`
-                          : 'Not Assessed'}
-                      </span>
-                    ) : (
-                      <span
-                        className={`priority-badge priority-${school.priority
-                          .toLowerCase()
-                          .replace(/\s+/g, '-')}`}
-                      >
-                        {school.priority}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                    <td>
+                      {isBackendData ? (
+                        <span className="priority-badge priority-not-assessed">
+                          {item.score != null
+                            ? `Score ${item.score}`
+                            : 'Not Assessed'}
+                        </span>
+                      ) : (
+                        <span
+                          className={`priority-badge priority-${String(
+                            school.priority
+                          )
+                            .toLowerCase()
+                            .replace(/\s+/g, '-')}`}
+                        >
+                          {school.priority}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
 
               {filteredSchools.length === 0 && (
                 <tr>
@@ -240,7 +360,9 @@ function Schools({ onSchoolSelect, schools = demoSchools }) {
                     colSpan="5"
                     className="schools-empty"
                   >
-                    No schools match your search or filter.
+                    {searchLoading
+                      ? 'Searching database...'
+                      : 'No matching schools found.'}
                   </td>
                 </tr>
               )}
@@ -249,18 +371,17 @@ function Schools({ onSchoolSelect, schools = demoSchools }) {
         </div>
 
         <p className="schools-result-count">
-          Showing {filteredSchools.length} of {schools.length}{' '}
-          {isBackendData
-            ? 'top-priority school records'
-            : 'schools'}
+          Showing {filteredSchools.length} school records
+          {isBackendData && needsBackendSearch
+            ? ' from database search'
+            : ''}
         </p>
 
         {isBackendData && (
           <p className="schools-result-count">
-            Schools without priority assessments are excluded
-            by the backend. Numeric scores are displayed as
-            recorded and have not been mapped to High,
-            Medium, or Low categories.
+            Database search returns up to 100 matching
+            records. Schools without priority scores can
+            also be found.
           </p>
         )}
       </div>
