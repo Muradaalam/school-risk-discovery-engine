@@ -1,10 +1,11 @@
 package com.schoolrde.schoolservice.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.schoolrde.schoolservice.dao.bussiness.SchoolDao;
@@ -89,6 +90,23 @@ public class SchoolService{
                 .map(this::convertToSchoolEntireResponseDto)
                 .collect(Collectors.toList());
         
+        return schoolEntireResponseDtos;
+    }
+
+    public List<SchoolEntireResponseDto> getAllSchools(Integer page, Integer size){
+
+        LOGGER.info("Getting all schools with page : {} and size : {}", page, size);
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<SchoolEntireEntity> schoolEntities = schoolDao.findAllSchools(pageable).getContent();
+
+        LOGGER.info("Retrieved {} schools from database", schoolEntities.size());
+
+        List<SchoolEntireResponseDto> schoolEntireResponseDtos = schoolEntities.stream()
+                .map(this::convertToSchoolEntireResponseDto)
+                .collect(Collectors.toList());
+
         return schoolEntireResponseDtos;
     }
 

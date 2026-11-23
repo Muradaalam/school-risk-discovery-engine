@@ -2,9 +2,14 @@ package com.schoolrde.schoolservice.dao.repository;
 
 import java.util.List;
 import java.util.Optional;
+
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 
 import com.schoolrde.schoolservice.entity.SchoolEntity;
 import com.schoolrde.schoolservice.entity.SchoolEntireEntity;
@@ -15,7 +20,9 @@ public interface SchoolRepository extends JpaRepository<SchoolEntity,Long>{
     @Query("SELECT s FROM SchoolEntireEntity s WHERE s.id = :id")
     Optional<SchoolEntireEntity> findById(@Param("id") Integer id);
     
-    boolean existsBySchoolId(String schoolId);
+    @Query("SELECT s.id FROM SchoolEntity s WHERE s.schoolId = :schoolId")
+	boolean existsBySchoolId(String schoolId);
+    
     void deleteBySchoolId(String schoolId);
     
     @Query(value = """
@@ -26,6 +33,9 @@ public interface SchoolRepository extends JpaRepository<SchoolEntity,Long>{
             )
             ORDER BY ps.priority_score DESC, s.id ASC LIMIT 50
             """, nativeQuery = true)
-        List<SchoolEntireEntity> findTop50SchoolsByPriorityScore();
+    List<SchoolEntireEntity> findTop50SchoolsByPriorityScore();
+    
+    @Query("SELECT s FROM SchoolEntireEntity s")
+    Page<SchoolEntireEntity> findAllSchools(Pageable pageable);
     
 }
