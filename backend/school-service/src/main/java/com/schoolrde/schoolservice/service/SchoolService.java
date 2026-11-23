@@ -92,6 +92,28 @@ public class SchoolService{
         return schoolEntireResponseDtos;
     }
 
+
+public List<SchoolEntireResponseDto> searchSchools(
+        String query,
+        Integer priorityScore) {
+
+    String searchQuery = query == null ? "" : query.trim();
+
+    LOGGER.info(
+        "Searching schools with query: {} and priority score: {}",
+        searchQuery,
+        priorityScore
+    );
+
+    List<SchoolEntireEntity> schoolEntities =
+            schoolDao.searchSchools(searchQuery, priorityScore);
+
+    return schoolEntities.stream()
+            .map(this::convertToSchoolEntireResponseDto)
+            .collect(Collectors.toList());
+}
+
+
     
     public Integer createSchool(SchoolRequestDto schoolRequestDto){
         if(schoolRequestDto.getSchoolId() == null || schoolRequestDto.getSchoolId().isBlank()){

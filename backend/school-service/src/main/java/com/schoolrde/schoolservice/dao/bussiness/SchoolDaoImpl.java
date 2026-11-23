@@ -62,4 +62,19 @@ public class SchoolDaoImpl implements SchoolDao{
         schoolRepository.deleteBySchoolId(schoolId);
         LOGGER.info("Delete operation is completed for schoolId : {}", schoolId);
     }
+
+    @Override
+    public List<SchoolEntireEntity> searchSchools(
+            String query,
+            Integer priorityScore) {
+
+        LOGGER.info(
+            "Searching schools with query: {} and priority score: {}",
+            query,
+            priorityScore
+        );
+
+        return schoolRepository.searchSchools(query, priorityScore);
+    }
+
 }

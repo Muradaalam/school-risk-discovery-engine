@@ -103,6 +103,25 @@ public class SchoolController{
         return ResponseEntity.ok(schoolEntireResponeDto);
     }
 
+
+    @GetMapping("/search")
+    public ResponseEntity<List<SchoolEntireResponseDto>> searchSchools(
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(required = false) Integer priorityScore) {
+
+        LOGGER.info(
+            "Searching schools: query={}, priorityScore={}",
+            query,
+            priorityScore
+        );
+
+        List<SchoolEntireResponseDto> schools =
+                schoolService.searchSchools(query, priorityScore);
+
+        return ResponseEntity.ok(schools);
+    }
+
+
     
     @PostMapping("/createSchool")
     public ResponseEntity<Integer> createSchool(@RequestBody SchoolRequestDto schoolRequestDto, HttpServletRequest request) throws Exception{

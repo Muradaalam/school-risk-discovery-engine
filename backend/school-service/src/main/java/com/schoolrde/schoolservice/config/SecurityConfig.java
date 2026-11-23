@@ -48,7 +48,14 @@ public class SecurityConfig{
 	    		session ->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 	    ).authorizeHttpRequests(auth -> auth
 	            .requestMatchers("/school-service/auth/generateToken").permitAll()
-	            .anyRequest().authenticated()
+                .requestMatchers(
+                    org.springframework.http.HttpMethod.GET,
+                    "/school-service/school/getTop50Schools",
+                    "/school-service/school/getSchool/id",
+                    "/school-service/school/getSchool/schoolId",
+					"/school-service/school/search"
+                ).permitAll()
+                .anyRequest().authenticated()
 	    ).addFilterBefore(jwtAuthenticationFilter,UsernamePasswordAuthenticationFilter.class);
 
 	    return http.build();
