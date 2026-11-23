@@ -13,4 +13,6 @@ public interface TenderRepository extends JpaRepository<TenderEntity,Integer>{
 	
 	List<TenderEntity> findByProjectId(Integer projectId);
     
+	boolean existsByTenderNumber(String tenderNumber);
+	
 }

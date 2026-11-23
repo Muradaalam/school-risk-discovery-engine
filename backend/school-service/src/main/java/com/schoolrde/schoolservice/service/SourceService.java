@@ -1,4 +1,5 @@
 package com.schoolrde.schoolservice.service;
+//DTO-to-Entity and Entity-to-DTO mapping is implemented with AI assistance
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +93,7 @@ public class SourceService{
 	    SourceResponseDto sourceResponseDto = new SourceResponseDto();
 
 	    sourceResponseDto.setId(sourceEntity.getId());
+	    sourceResponseDto.setSourceName(sourceEntity.getSourceName().getSourceName());
 	    sourceResponseDto.setSourceUrl(sourceEntity.getSourceUrl());
 	    sourceResponseDto.setPublicationDate(sourceEntity.getPublicationDate());
 

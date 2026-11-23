@@ -1,5 +1,6 @@
 package com.schoolrde.schoolservice.dao.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,6 @@ public interface PrioritySnapshotRepository extends JpaRepository<PrioritySnapsh
 	
 	Optional<PrioritySnapshotEntity> findById(Integer Id);
 	
-    Optional<PrioritySnapshotEntity> findBySchoolId(Integer schoolId);
+    List<PrioritySnapshotEntity> findBySchoolId(Integer schoolId);
 
 }

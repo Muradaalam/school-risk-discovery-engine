@@ -6,7 +6,7 @@ public class EventRequestDto{
 
 	private Integer id;
 	private Integer schoolId;
-	private Integer eventTypeId;
+	private String eventType;
 	private String detailedDescription;
 	private Date eventDate;
 	private String location;
@@ -28,12 +28,12 @@ public class EventRequestDto{
 	    this.schoolId = schoolId;
 	}
 
-	public Integer getEventTypeId(){
-	    return eventTypeId;
+	public String getEventType(){
+	    return eventType;
 	}
 
-	public void setEventTypeId(Integer eventTypeId){
-	    this.eventTypeId = eventTypeId;
+	public void setEventType(String eventType){
+	    this.eventType = eventType;
 	}
 
 	public String getDetailedDescription(){

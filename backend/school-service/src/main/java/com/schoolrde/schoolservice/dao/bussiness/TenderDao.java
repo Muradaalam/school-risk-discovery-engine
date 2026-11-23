@@ -12,5 +12,8 @@ public interface TenderDao{
     List<TenderEntity> findTenderByProjectId(Integer projectId);
 
     Optional<TenderEntity> findTenderById(Integer id);
+    
+    boolean existsByTenderNumber(String tenderNumber);
+
 
 }

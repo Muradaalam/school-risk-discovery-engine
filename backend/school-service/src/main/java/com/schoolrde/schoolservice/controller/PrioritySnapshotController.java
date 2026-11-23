@@ -1,5 +1,7 @@
 package com.schoolrde.schoolservice.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -28,7 +30,7 @@ public class PrioritySnapshotController{
 	}
 
 	@GetMapping("/getPrioritySnapshot/schoolId")
-	public ResponseEntity<PrioritySnapshotResponseDto> getPrioritySnapshotBySchoolId(@RequestParam Integer schoolId, HttpServletRequest request) throws Exception{
+	public ResponseEntity<List<PrioritySnapshotResponseDto>> getPrioritySnapshotBySchoolId(@RequestParam Integer schoolId, HttpServletRequest request) throws Exception{
 
 	    String uri = request.getRequestURI();
 	    String method = request.getMethod();
@@ -40,17 +42,17 @@ public class PrioritySnapshotController{
 
 	    LOGGER.info("Request: {}", JsonUtility.toJson(requestLoggerDto));
 
-	    PrioritySnapshotResponseDto responseDto = prioritySnapshotService.getPrioritySnapshotBySchoolId(schoolId);
+	    List<PrioritySnapshotResponseDto> responseDtos = prioritySnapshotService.getPrioritySnapshotBySchoolId(schoolId);
 
 	    ResponseLoggerDto responseLoggerDto = new ResponseLoggerDto();
 	    responseLoggerDto.setApi(uri);
 	    responseLoggerDto.setMethod(method);
 	    responseLoggerDto.setStatusCode(HttpStatus.OK.value());
-	    responseLoggerDto.setResponseBody(JsonUtility.toJson(responseDto));
+	    responseLoggerDto.setResponseBody(JsonUtility.toJson(responseDtos));
 
 	    LOGGER.info("Response: {}", JsonUtility.toJson(responseLoggerDto));
 
-	    return ResponseEntity.ok(responseDto);
+	    return ResponseEntity.ok(responseDtos);
 	}
 
 	@GetMapping("/getPrioritySnapshot/id")

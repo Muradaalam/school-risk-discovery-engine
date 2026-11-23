@@ -5,11 +5,13 @@ import java.sql.Date;
 public class PrioritySnapshotResponseDto{
 
 	private Integer id;
+	private Integer schoolId;
     private Date snapshotDate;
     private Integer priorityScore;
     private Integer activeIssues;
     private Integer underResolutionIssues;
     private Integer resolvedIssues;
+    private Date createdOn;
 	
     // Getters and setters are generated using STS: Source > Generate Getters and Setters
     public Integer getId(){
@@ -22,6 +24,14 @@ public class PrioritySnapshotResponseDto{
 
 	public Date getSnapshotDate(){
 		return snapshotDate;
+	}
+	
+	public Integer getSchoolId(){
+		return schoolId;
+	}
+	
+	public void setSchoolId(Integer schoolId){
+		this.schoolId = schoolId;
 	}
 
 	public void setSnapshotDate(Date snapshotDate){
@@ -59,5 +69,14 @@ public class PrioritySnapshotResponseDto{
 	public void setResolvedIssues(Integer resolvedIssues){
 		this.resolvedIssues = resolvedIssues;
 	}
+
+	public Date getCreatedOn(){
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn){
+		this.createdOn = createdOn;
+	}
+
 
 }

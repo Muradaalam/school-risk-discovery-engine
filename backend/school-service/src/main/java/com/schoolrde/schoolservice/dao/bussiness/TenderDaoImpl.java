@@ -41,5 +41,11 @@ public class TenderDaoImpl implements TenderDao{
         LOGGER.info("tender saved successfully : {}", JsonUtility.toJson(savedTenderEntity));
         return savedTenderEntity;
     }
+    
+    @Override
+    public boolean existsByTenderNumber(String tenderNumber){
+    	LOGGER.info("Checking tender in DB with tenderNumber: {}", tenderNumber);
+    	return tenderRepository.existsByTenderNumber(tenderNumber);
+    }
 
 }

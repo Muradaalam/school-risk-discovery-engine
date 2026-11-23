@@ -1,4 +1,5 @@
 package com.schoolrde.schoolservice.service;
+//DTO-to-Entity and Entity-to-DTO mapping is implemented with AI assistance
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,9 +68,9 @@ public class EventService{
 
         EventEntity eventEntity = new EventEntity();
         eventEntity.setSchoolId(eventRequestDto.getSchoolId());
-        EventType eventType = eventTypeRepository.findById(eventRequestDto.getEventTypeId())
+        EventType eventType = eventTypeRepository.findByEventType(eventRequestDto.getEventType())
                 .orElseGet(()->{
-                    LOGGER.warn("Event type not found with id: {}, setting event type to OTHER", eventRequestDto.getEventTypeId());
+                    LOGGER.warn("Event type not found with type {}, setting event type to OTHER", eventRequestDto.getEventType());
                     return eventTypeRepository.findByEventType("OTHER")
                             .orElseThrow(()-> new CustomException("E9007"));
                 });

@@ -23,11 +23,8 @@ public class TenderEntity {
     @Column(name = "tender_description", length = 100)
     private String tenderDescription;
 
-    @Column(name = "tender_status_id", nullable = false)
-    private Integer tenderStatusId;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tender_status_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "tender_status_id", referencedColumnName = "id", nullable = false)
     private TenderStatus tenderStatus;
 
     @Column(name = "estimated_amount", precision = 10, scale = 2)
@@ -107,16 +104,12 @@ public class TenderEntity {
         this.tenderDescription = tenderDescription;
     }
 
-    public Integer getTenderStatusId(){
-        return tenderStatusId;
-    }
-
-    public void setTenderStatusId(Integer tenderStatusId){
-        this.tenderStatusId = tenderStatusId;
-    }
-
     public TenderStatus getTenderStatus(){
         return tenderStatus;
+    }
+    
+    public void setTenderStatus(TenderStatus tenderStatus){
+        this.tenderStatus = tenderStatus;
     }
 
     public BigDecimal getEstimatedAmount(){

@@ -1,4 +1,5 @@
 package com.schoolrde.schoolservice.service;
+//DTO-to-Entity and Entity-to-DTO mapping is implemented with AI assistance
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,10 +9,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.schoolrde.schoolservice.dao.bussiness.TenderDao;
+import com.schoolrde.schoolservice.dao.repository.TenderStatusRepository;
 import com.schoolrde.schoolservice.dto.DocumentResponseDto;
 import com.schoolrde.schoolservice.dto.TenderRequestDto;
 import com.schoolrde.schoolservice.dto.TenderResponseDto;
 import com.schoolrde.schoolservice.entity.TenderEntity;
+import com.schoolrde.schoolservice.entity.TenderStatus;
 import com.schoolrde.schoolservice.exception.CustomException;
 
 
@@ -24,10 +27,13 @@ public class TenderService{
 
 	private final TenderDao tenderDao;
     private final DocumentService documentService;
+    private final TenderStatusRepository tenderStatusRepository;
 
-	public TenderService(TenderDao tenderDao, DocumentService documentService){
+
+	public TenderService(TenderDao tenderDao, DocumentService documentService, TenderStatusRepository tenderStatusRepository){
 	    this.tenderDao = tenderDao;
 	    this.documentService = documentService;
+	    this.tenderStatusRepository = tenderStatusRepository;
 	}
 
 	
@@ -67,13 +73,24 @@ public class TenderService{
 	public Integer createTender(TenderRequestDto tenderRequestDto){
 
 	    LOGGER.info("Creating tender");
-
+	    
+	    if(tenderDao.existsByTenderNumber(tenderRequestDto.getTenderNumber())){
+	    	LOGGER.warn("Tender already exists with tender number: {}", tenderRequestDto.getTenderNumber());
+	    	throw new CustomException("E9008");
+	    }
+	       
 	    TenderEntity tenderEntity = new TenderEntity();
 	    tenderEntity.setProjectId(tenderRequestDto.getProjectId());
 	    tenderEntity.setTenderNumber(tenderRequestDto.getTenderNumber());
 	    tenderEntity.setTenderTitle(tenderRequestDto.getTenderTitle());
 	    tenderEntity.setTenderDescription(tenderRequestDto.getTenderDescription());
-	    tenderEntity.setTenderStatusId(tenderRequestDto.getTenderStatusId());
+	    TenderStatus tenderStatus = tenderStatusRepository.findByStatus(tenderRequestDto.getTenderStatus())
+                .orElseGet(()->{
+                    LOGGER.warn("Tender status not found with status {}, setting tender status to OTHER", tenderRequestDto.getTenderStatus());
+                    return tenderStatusRepository.findByStatus("OTHER")
+                            .orElseThrow(()-> new CustomException("E9007"));
+                });
+	    tenderEntity.setTenderStatus(tenderStatus);
 	    tenderEntity.setEstimatedAmount(tenderRequestDto.getEstimatedAmount());
 	    tenderEntity.setAwardedAmount(tenderRequestDto.getAwardedAmount());
 	    tenderEntity.setPublicationDate(tenderRequestDto.getPublicationDate());
