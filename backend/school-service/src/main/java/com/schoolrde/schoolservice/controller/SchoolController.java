@@ -102,6 +102,36 @@ public class SchoolController{
 
         return ResponseEntity.ok(schoolEntireResponeDto);
     }
+    
+    @GetMapping("/getAllSchools")
+    public ResponseEntity<List<SchoolEntireResponseDto>> getAllSchools(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "50") Integer size,
+            HttpServletRequest request) throws Exception{
+    	
+        String uri = request.getRequestURL().toString() + "?" + request.getQueryString();
+        String method = request.getMethod();
+
+        RequestLoggerDto requestLoggerDto = new RequestLoggerDto();
+        requestLoggerDto.setApi(uri);
+        requestLoggerDto.setMethod(method);
+        requestLoggerDto.setRequestBody("{}");
+
+        LOGGER.info("Request : {}", JsonUtility.toJson(requestLoggerDto));
+
+        List<SchoolEntireResponseDto> schoolEntireResponeDtos = schoolService.getAllSchools(page, size);
+
+        ResponseLoggerDto responseLoggerDto = new ResponseLoggerDto();
+        responseLoggerDto.setApi(uri);
+        responseLoggerDto.setMethod(method);
+        responseLoggerDto.setStatusCode(HttpStatus.OK.value());
+        responseLoggerDto.setResponseBody(JsonUtility.toJson(schoolEntireResponeDtos));
+
+        LOGGER.info("Response: {}", JsonUtility.toJson(responseLoggerDto));
+
+        return ResponseEntity.ok(schoolEntireResponeDtos);
+    }
+
 
     
     @PostMapping("/createSchool")
