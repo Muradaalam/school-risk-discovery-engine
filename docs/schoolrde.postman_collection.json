@@ -1,0 +1,1243 @@
+{
+	"info": {
+		"_postman_id": "bbada5b2-3c0e-4f0f-beef-782a774681bb",
+		"name": "schoolrde",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16458050",
+		"_collection_link": "https://rogers-9794.postman.co/workspace/rogers-Workspace~878dfd65-5306-4fdc-9356-01401f4add8b/collection/16458050-bbada5b2-3c0e-4f0f-beef-782a774681bb?action=share&source=collection_link&creator=16458050"
+	},
+	"item": [
+		{
+			"name": "school",
+			"item": [
+				{
+					"name": "get schools with page and offset",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/school/getAllSchools?page=1&size=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"school",
+								"getAllSchools"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "size",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get 50 schools school priority score",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/school/getSchool/id?id=1000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"school",
+								"getSchool",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1000000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get school by id ",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/school/getSchool/id?id=1000001",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"school",
+								"getSchool",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1000001"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get school by school_id (only school table)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/school/getSchool/schoolId?schoolId=SCH-15143003",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"school",
+								"getSchool",
+								"schoolId"
+							],
+							"query": [
+								{
+									"key": "schoolId",
+									"value": "SCH-15143003"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createSchool",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"schoolId\": \"SCH-12030004\",\n    \"udiseCode\": \"08050212704\",\n    \"schoolName\": \"Seth Durgadas Government School\",\n    \"state\": \"Rajasthan\",\n    \"district\": \"Bikaner\",\n    \"block\": \"Bikaner\",\n    \"latitude\": null,\n    \"longitude\": null,\n    \"schoolType\": \"Senior Secondary\",\n    \"managementType\": \"Government\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/school/createSchool",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"school",
+								"createSchool"
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/createSchool' \\\n  --header 'Content-Type: application/json' \\\n  --header 'x-api-key: 7f3a9c21-8b64-4d52-ae17-6c90f2b8d145' \\\n  --data '{\n    \"schoolId\": \"SCH-12030004\",\n    \"udiseCode\": \"08050212704\",\n    \"schoolName\": \"Seth Durgadas Government School\",\n    \"state\": \"Rajasthan\",\n    \"district\": \"Bikaner\",\n    \"block\": \"Bikaner\",\n    \"latitude\": null,\n    \"longitude\": null,\n    \"schoolType\": \"Senior Secondary\",\n    \"managementType\": \"Government\"\n}'"
+					},
+					"response": []
+				},
+				{
+					"name": "school-service/deleteschool",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/school/deleteSchool/SCH-12030004",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"school",
+								"deleteSchool",
+								"SCH-12030004"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "document",
+			"item": [
+				{
+					"name": "document/createDocument",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"objectId\": 1000000,\n    \"objectCategory\": \"School\",\n    \"sourceId\": 7000000,\n    \"documentName\": \"School_UDISE_Report.pdf\",\n    \"docPath\": \"/home/School_UDISE_Report.pdf\",\n    \"description\": \"School information obtained from UDISE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/document/createDocument",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"document",
+								"createDocument"
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/document/createDocument' \\\n--user 'admin:admin123' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"objectId\": 1000000,\n    \"objectCategoryId\": 1,\n    \"sourceId\": 7000000,\n    \"documentName\": \"School_UDISE_Report.pdf\",\n    \"docPath\": \"/home/School_UDISE_Report.pdf\",\n    \"description\": \"School information obtained from UDISE\"\n}'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "document/getDocument/id?id=9000000",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/document/getDocument/id?id=9000007",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"document",
+								"getDocument",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "9000007"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/document/getDocument/sourceId?sourceId=7000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "document/getDocument/object?objectId=1000000&objectCategoryId=1",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/document/getDocument/objectId?objectId=1000000&objectCategoryId=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"document",
+								"getDocument",
+								"objectId"
+							],
+							"query": [
+								{
+									"key": "objectId",
+									"value": "1000000"
+								},
+								{
+									"key": "objectCategoryId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/document/getDocument/object?objectId=1000000&objectCategoryId=1' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "event",
+			"item": [
+				{
+					"name": "get event",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/event/getEvent/id?id=3000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"event",
+								"getEvent",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "3000000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get event by schoolId",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/event/getEvent/schoolId?schoolId=1000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"event",
+								"getEvent",
+								"schoolId"
+							],
+							"query": [
+								{
+									"key": "schoolId",
+									"value": "1000000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createEvent",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"schoolId\": 1000000,\n    \"eventType\": \"INFRASTRUCTURE_REVIEW\",\n    \"detailedDescription\": \"Inspection of school building and infrastructure facilities\",\n    \"eventDate\": \"2026-10-04T18:30:00.000Z\",\n    \"location\": \"School Campus\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/event/createEvent",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"event",
+								"createEvent"
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/api/events' \\\n--header 'Content-Type: application/json' \\\n--header 'Authorization: Bearer {{token}}' \\\n--data '{\n    \"schoolId\": 1000000,\n    \"eventType\": \"INFRASTRUCTURE_REVIEW\",\n    \"detailedDescription\": \"Inspection of school building and infrastructure facilities\",\n    \"eventDate\": \"2026-10-04T18:30:00.000Z\",\n    \"location\": \"School Campus\"\n}'\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "inspection",
+			"item": [
+				{
+					"name": "getInspection/schoolId?schoolId=1000000",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/inspection/getInspection/schoolId?schoolId=1000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"inspection",
+								"getInspection",
+								"schoolId"
+							],
+							"query": [
+								{
+									"key": "schoolId",
+									"value": "1000000"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/inspection/getInspection/schoolId?schoolId=1000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "inspection/getInspection/id?id=6000000",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/inspection/getInspection/id?id=6000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"inspection",
+								"getInspection",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "6000000"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/inspection/getInspection/id?id=6000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "inspection/createInspection",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"schoolId\": 1000000,\n    \"inspectionDate\": \"2026-11-20\",\n    \"inspectionType\": \"INFRASTRUCTURE\",\n    \"remarks\": \"Building condition requires maintenance\",\n    \"inspectorName\": \"Mahipal Sharma\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/inspection/createInspection",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"inspection",
+								"createInspection"
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/inspection/createInspection' \\\n--user 'admin:admin123' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"schoolId\": 1000000,\n    \"inspectionDate\": \"2026-11-20\",\n    \"inspectionType\": \"INFRASTRUCTURE\",\n    \"remarks\": \"Building condition requires maintenance\",\n    \"inspectorName\": \"Mahipal Sharma\"\n}'\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "issue",
+			"item": [
+				{
+					"name": "issue/getIssue/id?id=2000000",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/issue/getIssue/id?id=2000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"issue",
+								"getIssue",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "2000000"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/issue/getIssue/id?id=2000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "issue/getissue wiht schoolid",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/issue/getIssue/schoolId?schoolId=1000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"issue",
+								"getIssue",
+								"schoolId"
+							],
+							"query": [
+								{
+									"key": "schoolId",
+									"value": "1000000"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/issue/getIssue/schoolId?schoolId=1000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "issue/createIssue",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"schoolId\": 1000000,\n    \"issueType\": \"BUILDING\",\n    \"status\": \"ACTIVE\",\n    \"firstDetected\": \"2026-11-20\",\n    \"lastUpdated\": \"2026-11-20\",\n    \"resolvedAt\": null\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/issue/createIssue",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"issue",
+								"createIssue"
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/issue/createIssue' \\\n--user 'admin:admin123' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"schoolId\": 1000000,\n    \"issueTypeId\": 1,\n    \"statusId\": 1,\n    \"firstDetected\": \"2026-11-20\",\n    \"lastUpdated\": \"2026-11-20 10:30:00\",\n    \"resolvedAt\": null\n}'\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "priority_snapshot",
+			"item": [
+				{
+					"name": "get prioritysnapshot by id ",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/prioritySnapshot/getPrioritySnapshot/id?id=8000002",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"prioritySnapshot",
+								"getPrioritySnapshot",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "8000002"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get prioritysnapshot by schoolid",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/prioritySnapshot/getPrioritySnapshot/schoolId?schoolId=1000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"prioritySnapshot",
+								"getPrioritySnapshot",
+								"schoolId"
+							],
+							"query": [
+								{
+									"key": "schoolId",
+									"value": "1000000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "prioritySnapshot/createPrioritySnapshot",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"schoolId\": 1000000,\n    \"snapshotDate\": \"2026-11-23\",\n    \"priorityScore\": 85,\n    \"activeIssues\": 3,\n    \"underResolutionIssues\": 2,\n    \"resolvedIssues\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/prioritySnapshot/createPrioritySnapshot",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"prioritySnapshot",
+								"createPrioritySnapshot"
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/prioritySnapshot/createPrioritySnapshot' \\\n--header 'Content-Type: application/json' \\\n--header 'Authorization: Bearer <your_token>' \\\n--data '{\n    \"schoolId\": 1000000,\n    \"snapshotDate\": \"2026-11-23\",\n    \"priorityScore\": 85,\n    \"activeIssues\": 3,\n    \"underResolutionIssues\": 2,\n    \"resolvedIssues\": 5\n}'\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "project",
+			"item": [
+				{
+					"name": "project/createProject",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"issueId\": 2000000,\n    \"projectType\": \"REPAIR\",\n    \"projectDescription\": \"Repair structural damage to school building\",\n    \"projectStatus\": \"PENDING\",\n    \"estimatedCost\": 100000.00,\n    \"actualCost\": null,\n    \"startDate\": \"2026-11-25\",\n    \"expectedCompletionDate\": \"2027-02-15\",\n    \"actualCompletionDate\": null,\n    \"remarks\": \"Repair work pending approval\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/project/createProject",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"project",
+								"createProject"
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/project/createProject' \\\n--user 'admin:admin123' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"issueId\": 2000000,\n    \"projectType\": \"REPAIR\",\n    \"projectDescription\": \"Repair structural damage to school building\",\n    \"projectStatus\": \"PENDING\",\n    \"estimatedCost\": 100000.00,\n    \"actualCost\": null,\n    \"startDate\": \"2026-11-25\",\n    \"expectedCompletionDate\": \"2027-02-15\",\n    \"actualCompletionDate\": null,\n    \"remarks\": \"Repair work pending approval\"\n}'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "project/getProject/id?id=4000000",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/project/getProject/id?id=4000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"project",
+								"getProject",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "4000000"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/project/getProject/id?id=4000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "getProject/issueId?issueId=2000000",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/project/getProject/issueId?issueId=2000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"project",
+								"getProject",
+								"issueId"
+							],
+							"query": [
+								{
+									"key": "issueId",
+									"value": "2000000"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/project/getProject/issueId?issueId=2000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "source",
+			"item": [
+				{
+					"name": "source/createSource",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"schoolId\": 1000000,\n    \"sourceNameId\": 1,\n    \"sourceUrl\": \"https://udiseplus.gov.in/#/en/home\",\n    \"publicationDate\": \"2026-11-20\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/source/createSource",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"source",
+								"createSource"
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/source/createSource' \\\n--user 'admin:admin123' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"schoolId\": 1000000,\n    \"sourceNameId\": 1,\n    \"sourceUrl\": \"https://udiseplus.gov.in/#/en/home\",\n    \"publicationDate\": \"2026-11-20\"\n}'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "source/getSource/id?id=7000000",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/source/getSource/id?id=7000001",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"source",
+								"getSource",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "7000001"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/source/getSource/id?id=7000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "source/getSource/schoolId?schoolId=1000000",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "admin123",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/school-service/source/getSource/schoolId?schoolId=1000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"source",
+								"getSource",
+								"schoolId"
+							],
+							"query": [
+								{
+									"key": "schoolId",
+									"value": "1000000"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/source/getSource/schoolId?schoolId=1000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "tender",
+			"item": [
+				{
+					"name": "tender/getTender/id?id=5000000",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/tender/getTender/id?id=5000007",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"tender",
+								"getTender",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "5000007"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/tender/getTender/id?id=5000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "tender/getTender/projectId?projectId=4000000",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/school-service/tender/getTender/projectId?projectId=4000000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"tender",
+								"getTender",
+								"projectId"
+							],
+							"query": [
+								{
+									"key": "projectId",
+									"value": "4000000"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/tender/getTender/projectId?projectId=4000000' \\\n--user 'admin:admin123'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "tender/createTender",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"projectId\": 4000000,\n    \"tenderNumber\": \"2026-006\",\n    \"tenderTitle\": \"School Building Repair\",\n    \"tenderDescription\": \"Repair structural damage\",\n    \"tenderStatus\": \"COMPLETED\",\n    \"estimatedAmount\": 100000.00,\n    \"awardedAmount\": null,\n    \"publicationDate\": \"2026-11-20\",\n    \"submissionDeadline\": \"2026-12-20\",\n    \"awardDate\": null,\n    \"contractorName\": null,\n    \"contractStartDate\": null,\n    \"contractEndDate\": null\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/school-service/tender/createTender",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"school-service",
+								"tender",
+								"createTender"
+							]
+						},
+						"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/tender/createTender' \\\n--user 'admin:admin123' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"projectId\": 4000000,\n    \"tenderNumber\": \"2026-005\",\n    \"tenderTitle\": \"School Building Repair\",\n    \"tenderDescription\": \"Repair structural damage\",\n    \"tenderStatusId\": 2,\n    \"estimatedAmount\": 100000.00,\n    \"awardedAmount\": null,\n    \"publicationDate\": \"2026-11-20\",\n    \"submissionDeadline\": \"2026-12-20\",\n    \"awardDate\": null,\n    \"contractorName\": null,\n    \"contractStartDate\": null,\n    \"contractEndDate\": null\n}'\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "/auth/generateToken",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"pm.environment.set(\"token\", response.token);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin@prs123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/school-service/auth/generateToken",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"school-service",
+						"auth",
+						"generateToken"
+					]
+				},
+				"description": "Generated from cURL: curl --location 'http://localhost:8080/school-service/auth/generateToken' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"username\": \"admin\",\n    \"password\": \"admin@prs123\"\n}'\n"
+			},
+			"response": []
+		}
+	]
+}
