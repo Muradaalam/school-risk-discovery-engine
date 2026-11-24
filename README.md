@@ -343,8 +343,7 @@ Also, the supplied backend application properties contain development credential
 | **Murad Aalam** | 26M0803 | Public data acquisition, document extraction, normalization, evidence processing, and prioritization |
 | **Deendayal Prajapat** | 26M0815 | MySQL schema, Spring Boot backend, DAO/repository layers, REST APIs, and authentication |
 
-**Faculty Guide:** Prof. Om P. Damani  
-**Course:** CS699 — Software Lab
+
 
 ## Further Documentation
 
