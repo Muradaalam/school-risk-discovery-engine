@@ -1,5 +1,4 @@
 
-"""Find reviewable links between repair-list schools and public tenders."""
 
 import argparse
 import csv

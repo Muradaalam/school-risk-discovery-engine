@@ -9,7 +9,6 @@ from pathlib import Path
 
 from data_pipeline.normalization.udise_code import normalize_udise_code
 
-
 HEADERS = [
     "serial", "district", "constituency", "block", "school_name",
     "udise_raw", "udise_code", "udise_note", "school_type",

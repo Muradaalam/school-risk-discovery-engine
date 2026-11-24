@@ -1,4 +1,4 @@
-"""Stream a public PDF to disk and record provenance metadata."""
+
 
 import argparse
 import hashlib

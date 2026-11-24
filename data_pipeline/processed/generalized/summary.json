@@ -1,0 +1,16 @@
+{
+  "documents_input": 3,
+  "documents_processed": 3,
+  "documents_failed": 0,
+  "duplicate_content_skipped": 0,
+  "pdf_pages": 538,
+  "table_row_candidates": 53664,
+  "unparsed_table_rows": 6498,
+  "school_records": 47166,
+  "evidence_records": 47160,
+  "review_items": 27273,
+  "ten_digit_codes": 46628,
+  "unsupported_formats": 0,
+  "status": "OK",
+  "generated_at": "2026-11-23T11:52:18.827368+00:00"
+}

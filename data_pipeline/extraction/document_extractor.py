@@ -83,6 +83,7 @@ def _parse_manifest(path):
 
 
 def _latest_per_url(records):
+    
     chosen, unsourced = {}, []
     for record in records:
         key = record.get("url") or record.get("source_url")
@@ -95,6 +96,7 @@ def _latest_per_url(records):
 
 
 def _process_excerpt(record):
+    
     title, excerpt = record.get("title", ""), record.get("excerpt") or record.get("summary") or ""
     if not excerpt:
         raise ValueError("Acquisition record has neither a local file nor an excerpt")
@@ -107,6 +109,7 @@ def _process_excerpt(record):
 
 
 def extract(documents, *, max_documents=None):
+    
     outputs = {"documents": [], "schools": [], "evidence": [], "review": []}
     summary = {"documents_input": len(documents), "documents_processed": 0,
                "documents_failed": 0, "duplicate_content_skipped": 0,
@@ -176,7 +179,8 @@ def _write_jsonl(path, records):
             os.unlink(name)
 
 
-def run(manifests=(), files=(), *, output_dir=DEFAULT_OUTPUT, source="MANUAL", title="", source_url="", max_documents=None):
+def run(manifests=(), files=(), *, output_dir=DEFAULT_OUTPUT, source="MANUAL", title="", source_url="", max_documents=None,
+        sync_db=False, db_dry_run=False, db_limit=None, db_batch_size=500):
     documents, errors = [], []
     for manifest in manifests:
         rows, broken = _parse_manifest(manifest)
@@ -198,10 +202,19 @@ def run(manifests=(), files=(), *, output_dir=DEFAULT_OUTPUT, source="MANUAL", t
                     "documents": "documents.jsonl", "review": "review.jsonl"}[name]
         _write_jsonl(out / filename, outputs[name])
     (out / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    if sync_db:
+        if summary["documents_failed"]:
+            raise ValueError("Database sync blocked: one or more documents failed extraction")
+        from data_pipeline.integration.school_data_store import sync_output
+        summary["db_sync"] = sync_output(out / "school_records.jsonl", out / "evidence.jsonl",
+                                         review_path=out / "db_sync_review.jsonl", dry_run=db_dry_run,
+                                         limit=db_limit, batch_size=db_batch_size)
+        (out / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return summary
 
 
 def main():
+    # This part is AI written
     parser = argparse.ArgumentParser(description="Extract school evidence from acquired PDF, HTML and XML files")
     parser.add_argument("--manifest", action="append", type=Path, default=[], help="Acquisition JSONL manifest (repeatable)")
     parser.add_argument("--file", action="append", type=Path, default=[], help="Local PDF/HTML/XML file (repeatable)")
@@ -210,12 +223,24 @@ def main():
     parser.add_argument("--source-url", default="", help="Original URL for --file")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--max-documents", type=int, default=None)
+    parser.add_argument("--sync-db", action="store_true")
+    parser.add_argument("--db-dry-run", action="store_true")
+    parser.add_argument("--db-limit", type=int)
+    parser.add_argument("--db-batch-size", type=int, default=500)
     args = parser.parse_args()
     if args.max_documents is not None and args.max_documents < 1:
         parser.error("--max-documents must be positive")
+    if args.db_limit is not None and args.db_limit < 1:
+        parser.error("--db-limit must be positive")
+    if args.db_batch_size < 1:
+        parser.error("--db-batch-size must be positive")
+    if (args.db_dry_run or args.db_limit is not None) and not args.sync_db:
+        parser.error("--db-dry-run and --db-limit require --sync-db")
     print(json.dumps(run(args.manifest, args.file, output_dir=args.output_dir,
                          source=args.source, title=args.title, source_url=args.source_url,
-                         max_documents=args.max_documents), indent=2, ensure_ascii=False))
+                         max_documents=args.max_documents, sync_db=args.sync_db,
+                         db_dry_run=args.db_dry_run, db_limit=args.db_limit,
+                         db_batch_size=args.db_batch_size), indent=2, ensure_ascii=False))
 
 
 if __name__ == "__main__":
