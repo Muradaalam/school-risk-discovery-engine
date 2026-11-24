@@ -121,3 +121,7 @@
     display: none;
   }
 }
+
+.top-navbar {
+  justify-content: flex-end;
+}

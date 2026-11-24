@@ -87,3 +87,34 @@
     flex-wrap: wrap;
   }
 }
+
+
+.sidebar-link {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sidebar-link:hover:not(:disabled) {
+  background: #1b3d5e;
+  color: #ffffff;
+}
+
+.sidebar-link.active,
+.sidebar-link.active:hover {
+  background: #1e5288;
+  color: #ffffff;
+}
+
+.sidebar-link:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.sidebar-link:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
