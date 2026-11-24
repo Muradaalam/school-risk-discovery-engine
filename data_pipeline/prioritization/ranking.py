@@ -48,15 +48,15 @@ def rank_school(timeline: dict, generated_at: str) -> dict:
     reasons = []
 
     if repairs:
-        score = 20 + min(rooms, 20) * 4
+        score = 4 + min(rooms, 2) * 3
         reasons.append(f"Historical repair list records {rooms} classrooms requiring repair")
     elif incidents:
-        score = 35
+        score = 3.5
     else:
         score = 0
 
     if incidents:
-        score += min(len(incidents), 2) * 15
+        score += min(len(incidents), 2) * 1.5
         reasons.append(
             f"{len(incidents)} distinct reported infrastructure incident(s); "
             "identity and claims require verification"
@@ -79,9 +79,9 @@ def rank_school(timeline: dict, generated_at: str) -> dict:
 
     if not eligible:
         level = "NOT_RANKED"
-    elif score >= 60:
+    elif score > 8.5:
         level = "HIGH"
-    elif score >= 35:
+    elif score > 5.5:
         level = "MEDIUM"
     else:
         level = "LOW"

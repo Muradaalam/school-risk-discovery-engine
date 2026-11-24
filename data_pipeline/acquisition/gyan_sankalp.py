@@ -18,8 +18,6 @@ HOST = "gyansankalp.rajasthan.gov.in"
 PAGES = (
     f"https://{HOST}/Home/HomePage.aspx",
     f"https://{HOST}/home/ViewDocument.aspx",
-    f"https://{HOST}/Home/SupportProject.aspx",
-    f"https://{HOST}/home/CreateCSRProject.aspx",
 )
 
 TERMS = (
