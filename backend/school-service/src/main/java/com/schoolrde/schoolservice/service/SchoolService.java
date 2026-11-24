@@ -1,16 +1,33 @@
 package com.schoolrde.schoolservice.service;
+//DTO-to-Entity and Entity-to-DTO mapping is implemented with AI assistance
 
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.schoolrde.schoolservice.dao.bussiness.SchoolDao;
+import com.schoolrde.schoolservice.dto.DocumentResponseDto;
+import com.schoolrde.schoolservice.dto.EventResponseDto;
+import com.schoolrde.schoolservice.dto.InspectionResponseDto;
+import com.schoolrde.schoolservice.dto.IssueResponseDto;
+import com.schoolrde.schoolservice.dto.PrioritySnapshotResponseDto;
+import com.schoolrde.schoolservice.dto.ProjectResponseDto;
 import com.schoolrde.schoolservice.dto.SchoolRequestDto;
 import com.schoolrde.schoolservice.dto.SchoolResponseDto;
+import com.schoolrde.schoolservice.dto.SchoolEntireResponseDto;
+import com.schoolrde.schoolservice.dto.TenderResponseDto;
+import com.schoolrde.schoolservice.entity.EventEntity;
+import com.schoolrde.schoolservice.entity.InspectionEntity;
+import com.schoolrde.schoolservice.entity.IssueEntity;
+import com.schoolrde.schoolservice.entity.PrioritySnapshotEntity;
+import com.schoolrde.schoolservice.entity.ProjectEntity;
 import com.schoolrde.schoolservice.entity.SchoolEntity;
+import com.schoolrde.schoolservice.entity.SchoolEntireEntity;
+import com.schoolrde.schoolservice.entity.TenderEntity;
 import com.schoolrde.schoolservice.exception.CustomException;
 
 @Service
@@ -18,10 +35,24 @@ public class SchoolService{
 	
     private static final Logger LOGGER=LoggerFactory.getLogger(SchoolService.class);
     
-    @Autowired
-    SchoolDao schoolDao;
+    public static final Integer CATEGORY_SCHOOL = 1;
+    public static final Integer CATEGORY_ISSUE = 2;
+    public static final Integer CATEGORY_EVENT = 3;
+    public static final Integer CATEGORY_PROJECT = 4;
+    public static final Integer CATEGORY_TENDER = 5;
+    public static final Integer CATEGORY_INSPECTION = 6;
 
-    public SchoolResponseDto getSchoolById(String schoolId){
+    
+    private final SchoolDao schoolDao;
+    private final DocumentService documentService;
+
+
+    SchoolService(SchoolDao schoolDao, DocumentService documentService){
+        this.schoolDao = schoolDao;
+        this.documentService = documentService;
+    }
+    
+    public SchoolResponseDto getSchoolBySchoolId(String schoolId){
     	LOGGER.debug("Fetching school with schoolId : {}", schoolId);
 
         SchoolEntity schoolEntity=schoolDao.findBySchoolId(schoolId)
@@ -34,8 +65,54 @@ public class SchoolService{
         return convertToResponseDto(schoolEntity);
     }
     
+
+    public SchoolEntireResponseDto getSchoolById(int id){
+    	LOGGER.debug("Fetching school with Id : {}", id);
+
+    	SchoolEntireEntity schoolEntireEntity=schoolDao.findById(id)
+                .orElseThrow(()->{
+                	LOGGER.warn("School not found with Id : {}", id);
+                    return new CustomException("E9001");
+                });
+
+        LOGGER.info("School retrieved successfully with Id : {}",id);
+        return convertToSchoolEntireResponseDto(schoolEntireEntity);
+    }
     
-    public Long createSchool(SchoolRequestDto schoolRequestDto){
+    public List<SchoolEntireResponseDto> getTop50SchoolsByPriorityScore(){
+
+        LOGGER.info("get top 50 schools based on priority score");
+
+        List<SchoolEntireEntity> schoolEntities = schoolDao.findTop50SchoolsByPriorityScore();
+
+        LOGGER.info("Retrieved {} schools based on priority score", schoolEntities.size());
+
+        List<SchoolEntireResponseDto> schoolEntireResponseDtos = schoolEntities.stream()
+                .map(this::convertToSchoolEntireResponseDto)
+                .collect(Collectors.toList());
+        
+        return schoolEntireResponseDtos;
+    }
+
+    public List<SchoolEntireResponseDto> getAllSchools(Integer page, Integer size){
+
+        LOGGER.info("Getting all schools with page : {} and size : {}", page, size);
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<SchoolEntireEntity> schoolEntities = schoolDao.findAllSchools(pageable).getContent();
+
+        LOGGER.info("Retrieved {} schools from database", schoolEntities.size());
+
+        List<SchoolEntireResponseDto> schoolEntireResponseDtos = schoolEntities.stream()
+                .map(this::convertToSchoolEntireResponseDto)
+                .collect(Collectors.toList());
+
+        return schoolEntireResponseDtos;
+    }
+
+    
+    public Integer createSchool(SchoolRequestDto schoolRequestDto){
         if(schoolRequestDto.getSchoolId() == null || schoolRequestDto.getSchoolId().isBlank()){
         	LOGGER.warn("School creation failed: schoolId is missing");
             throw new CustomException("E9003");
@@ -95,7 +172,7 @@ public class SchoolService{
     }
 
     private SchoolResponseDto convertToResponseDto(SchoolEntity schoolEntity){
-        LOGGER.info("Creating SchoolResponseDto");
+        LOGGER.info("Creating SchoolResponseDto...");
         SchoolResponseDto schoolResponseDto=new SchoolResponseDto();
         schoolResponseDto.setId(schoolEntity.getId());
         schoolResponseDto.setSchoolId(schoolEntity.getSchoolId());
@@ -114,4 +191,193 @@ public class SchoolService{
         schoolResponseDto.setUpdatedBy(schoolEntity.getUpdatedBy());
         return schoolResponseDto;
     }
+    
+    private SchoolEntireResponseDto convertToSchoolEntireResponseDto(SchoolEntireEntity schoolEntireEntity){
+    	
+    	LOGGER.info("Creating schoolEntireResponseDto...");
+        SchoolEntireResponseDto schoolEntireResponseDto = new SchoolEntireResponseDto();
+
+        schoolEntireResponseDto.setId(schoolEntireEntity.getId());
+        schoolEntireResponseDto.setSchoolId(schoolEntireEntity.getSchoolId());
+        schoolEntireResponseDto.setUdiseCode(schoolEntireEntity.getUdiseCode());
+        schoolEntireResponseDto.setSchoolName(schoolEntireEntity.getSchoolName());
+        schoolEntireResponseDto.setState(schoolEntireEntity.getState());
+        schoolEntireResponseDto.setDistrict(schoolEntireEntity.getDistrict());
+        schoolEntireResponseDto.setBlock(schoolEntireEntity.getBlock());
+        schoolEntireResponseDto.setLatitude(schoolEntireEntity.getLatitude());
+        schoolEntireResponseDto.setLongitude(schoolEntireEntity.getLongitude());
+        schoolEntireResponseDto.setSchoolType(schoolEntireEntity.getSchoolType());
+        schoolEntireResponseDto.setManagementType(schoolEntireEntity.getManagementType());
+        List<DocumentResponseDto> schoolDocuments = documentService.
+        		getDocumentByObjectIdAndObjectCategoryId(schoolEntireEntity.getId(), CATEGORY_SCHOOL);
+        schoolEntireResponseDto.setSchoolDocuments(schoolDocuments);
+
+        List<PrioritySnapshotResponseDto> prioritySnapshots = schoolEntireEntity.getPrioritySnapshots()
+                .stream().map(this::convertToPrioritySnapshotResponseDto)
+                .collect(Collectors.toList());
+
+        schoolEntireResponseDto.setPrioritySnapshots(prioritySnapshots);
+
+        List<IssueResponseDto> issues = schoolEntireEntity.getIssues()
+                .stream().map(this::convertToIssueResponseDto)
+                .collect(Collectors.toList());
+
+        schoolEntireResponseDto.setIssues(issues);
+
+        List<InspectionResponseDto> inspections = schoolEntireEntity.getInspections()
+                .stream().map(this::convertToInspectionResponseDto)
+                .collect(Collectors.toList());
+
+        schoolEntireResponseDto.setInspections(inspections);
+
+        List<EventResponseDto> events = schoolEntireEntity.getEvents()
+                .stream().map(this::convertToEventResponseDto)
+                .collect(Collectors.toList());
+
+        schoolEntireResponseDto.setEvents(events);
+
+          
+        return schoolEntireResponseDto;
+    }
+
+    
+    private PrioritySnapshotResponseDto convertToPrioritySnapshotResponseDto(PrioritySnapshotEntity prioritySnapshotEntity){
+
+        LOGGER.info("Creating PrioritySnapshotResponseDto...");
+
+        PrioritySnapshotResponseDto prioritySnapshotResponseDto = new PrioritySnapshotResponseDto();
+
+        prioritySnapshotResponseDto.setId(prioritySnapshotEntity.getId());
+        prioritySnapshotResponseDto.setSnapshotDate(prioritySnapshotEntity.getSnapshotDate());
+        prioritySnapshotResponseDto.setPriorityScore(prioritySnapshotEntity.getPriorityScore());
+        prioritySnapshotResponseDto.setActiveIssues(prioritySnapshotEntity.getActiveIssues());
+        prioritySnapshotResponseDto.setUnderResolutionIssues(prioritySnapshotEntity.getUnderResolutionIssues());
+        prioritySnapshotResponseDto.setResolvedIssues(prioritySnapshotEntity.getResolvedIssues());
+	    prioritySnapshotResponseDto.setCreatedOn(prioritySnapshotEntity.getCreatedOn());
+
+        return prioritySnapshotResponseDto;
+
+    }
+    
+    private IssueResponseDto convertToIssueResponseDto(IssueEntity issueEntity){
+
+    	LOGGER.info("Creating IssueResponseDto...");
+        IssueResponseDto issueResponseDto = new IssueResponseDto();
+
+        issueResponseDto.setId(issueEntity.getId());
+        issueResponseDto.setFirstDetected(issueEntity.getFirstDetected());
+        issueResponseDto.setLastUpdated(issueEntity.getLastUpdated());
+        issueResponseDto.setResolvedAt(issueEntity.getResolvedAt());
+        issueResponseDto.setIssueType(issueEntity.getIssueType().getIssueType());
+        issueResponseDto.setIssueTypeDescription(issueEntity.getIssueType().getDescription());
+        issueResponseDto.setStatus(issueEntity.getIssueStatus().getStatus());
+        issueResponseDto.setStatusDescription(issueEntity.getIssueStatus().getDescription());
+        
+        List<ProjectResponseDto> projects = issueEntity.getProjects()
+                .stream().map(this::convertToProjectResponseDto)
+                .collect(Collectors.toList());
+        issueResponseDto.setProjects(projects);
+
+        List<DocumentResponseDto> issueDocuments = documentService
+                .getDocumentByObjectIdAndObjectCategoryId(issueEntity.getId(), CATEGORY_ISSUE);
+        issueResponseDto.setIssueDocuments(issueDocuments);
+
+        return issueResponseDto;
+    }
+    
+    private ProjectResponseDto convertToProjectResponseDto(ProjectEntity projectEntity){
+
+    	LOGGER.info("Creating ProjectResponseDto...");
+        ProjectResponseDto projectResponseDto = new ProjectResponseDto();
+
+        projectResponseDto.setId(projectEntity.getId());
+        projectResponseDto.setIssueId(projectEntity.getIssueId());
+        projectResponseDto.setProjectType(projectEntity.getProjectType());
+        projectResponseDto.setProjectDescription(projectEntity.getProjectDescription());
+        projectResponseDto.setProjectStatus(projectEntity.getProjectStatus());
+        projectResponseDto.setEstimatedCost(projectEntity.getEstimatedCost());
+        projectResponseDto.setActualCost(projectEntity.getActualCost());
+        projectResponseDto.setStartDate(projectEntity.getStartDate());
+        projectResponseDto.setExpectedCompletionDate(projectEntity.getExpectedCompletionDate());
+        projectResponseDto.setActualCompletionDate(projectEntity.getActualCompletionDate());
+        projectResponseDto.setRemarks(projectEntity.getRemarks());  
+        
+        List<TenderResponseDto> tenders = projectEntity.getTenders()
+                .stream().map(this::convertToTenderResponseDto)
+                .collect(Collectors.toList());
+        projectResponseDto.setTenders(tenders);
+
+        List<DocumentResponseDto> projectDocuments = documentService
+                .getDocumentByObjectIdAndObjectCategoryId(projectEntity.getId(), CATEGORY_PROJECT);
+        projectResponseDto.setProjectDocuments(projectDocuments);
+
+
+        return projectResponseDto;
+    }
+    
+    private TenderResponseDto convertToTenderResponseDto(TenderEntity tenderEntity){
+
+        
+    	LOGGER.info("Creating TenderResponseDto...");
+        TenderResponseDto tenderResponseDto = new TenderResponseDto();
+
+        tenderResponseDto.setId(tenderEntity.getId());
+        tenderResponseDto.setProjectId(tenderEntity.getProjectId());
+        tenderResponseDto.setTenderNumber(tenderEntity.getTenderNumber());
+        tenderResponseDto.setTenderTitle(tenderEntity.getTenderTitle());
+        tenderResponseDto.setTenderDescription(tenderEntity.getTenderDescription());
+        tenderResponseDto.setTenderStatus(tenderEntity.getTenderStatus().getStatus());
+        tenderResponseDto.setEstimatedAmount(tenderEntity.getEstimatedAmount());
+        tenderResponseDto.setAwardedAmount(tenderEntity.getAwardedAmount());
+        tenderResponseDto.setPublicationDate(tenderEntity.getPublicationDate());
+        tenderResponseDto.setSubmissionDeadline(tenderEntity.getSubmissionDeadline());
+        tenderResponseDto.setAwardDate(tenderEntity.getAwardDate());
+        tenderResponseDto.setContractorName(tenderEntity.getContractorName());
+        tenderResponseDto.setContractStartDate(tenderEntity.getContractStartDate());
+        tenderResponseDto.setContractEndDate(tenderEntity.getContractEndDate());
+        List<DocumentResponseDto> tenderDocuments = documentService
+                .getDocumentByObjectIdAndObjectCategoryId(tenderEntity.getId(), CATEGORY_TENDER);
+        tenderResponseDto.setTenderDocuments(tenderDocuments);
+
+        return tenderResponseDto;
+    }
+    
+    private InspectionResponseDto convertToInspectionResponseDto(InspectionEntity inspectionEntity){
+
+        LOGGER.info("Creating InspectionResponseDto...");
+
+        InspectionResponseDto inspectionResponseDto = new InspectionResponseDto();
+
+        inspectionResponseDto.setId(inspectionEntity.getId());
+        inspectionResponseDto.setInspectionDate(inspectionEntity.getInspectionDate());
+        inspectionResponseDto.setInspectionType(inspectionEntity.getInspectionType());
+        inspectionResponseDto.setRemarks(inspectionEntity.getRemarks());
+        inspectionResponseDto.setInspectorName(inspectionEntity.getInspectorName());
+        List<DocumentResponseDto> inspectionDocuments = documentService
+                .getDocumentByObjectIdAndObjectCategoryId(inspectionEntity.getId(), CATEGORY_INSPECTION);
+        inspectionResponseDto.setInspectionDocuments(inspectionDocuments);
+
+        return inspectionResponseDto;
+
+    }
+
+    private EventResponseDto convertToEventResponseDto(EventEntity eventEntity){
+
+        LOGGER.info("Creating EventResponseDto...");
+
+        EventResponseDto eventResponseDto = new EventResponseDto();
+
+        eventResponseDto.setId(eventEntity.getId());
+        eventResponseDto.setEventType(eventEntity.getEventType().getEventType());
+        eventResponseDto.setDetailedDescription(eventEntity.getDetailedDescription());
+        eventResponseDto.setEventDate(eventEntity.getEventDate());
+        eventResponseDto.setLocation(eventEntity.getLocation());
+        List<DocumentResponseDto> eventDocuments = documentService
+                .getDocumentByObjectIdAndObjectCategoryId(eventEntity.getId(), CATEGORY_EVENT);
+        eventResponseDto.setEventDocuments(eventDocuments);
+
+        return eventResponseDto;
+
+    }
+    
 }

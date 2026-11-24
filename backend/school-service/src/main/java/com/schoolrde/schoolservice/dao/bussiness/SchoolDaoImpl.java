@@ -1,7 +1,11 @@
 package com.schoolrde.schoolservice.dao.bussiness;
 
 
+import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import com.schoolrde.schoolservice.dao.repository.SchoolRepository;
 import org.slf4j.Logger;
@@ -9,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 
 import com.schoolrde.schoolservice.entity.SchoolEntity;
+import com.schoolrde.schoolservice.entity.SchoolEntireEntity;
 import com.schoolrde.schoolservice.util.JsonUtility;
 
 @Repository
@@ -26,6 +31,24 @@ public class SchoolDaoImpl implements SchoolDao{
     public Optional<SchoolEntity> findBySchoolId(String schoolId){
     	LOGGER.info("Quering school from database with schoolId : {}", schoolId);
         return schoolRepository.findBySchoolId(schoolId);
+    }
+    
+    @Override
+    public Optional<SchoolEntireEntity> findById(Integer id){
+    	LOGGER.info("Quering school from database with id : {}", id);
+        return schoolRepository.findById(id);
+    }
+    
+    @Override
+    public List<SchoolEntireEntity> findTop50SchoolsByPriorityScore(){
+        LOGGER.info("Quering top 50 schools from database based on priority score");
+        return schoolRepository.findTop50SchoolsByPriorityScore();
+    }
+    
+    @Override
+    public Page<SchoolEntireEntity> findAllSchools(Pageable pageable){
+        LOGGER.info("Quering all schools from database");
+        return schoolRepository.findAllSchools(pageable);
     }
     
     @Override

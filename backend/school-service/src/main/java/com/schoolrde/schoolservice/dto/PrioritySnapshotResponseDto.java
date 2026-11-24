@@ -1,0 +1,82 @@
+package com.schoolrde.schoolservice.dto;
+
+import java.sql.Date;
+
+public class PrioritySnapshotResponseDto{
+
+	private Integer id;
+	private Integer schoolId;
+    private Date snapshotDate;
+    private Integer priorityScore;
+    private Integer activeIssues;
+    private Integer underResolutionIssues;
+    private Integer resolvedIssues;
+    private Date createdOn;
+	
+    // Getters and setters are generated using STS: Source > Generate Getters and Setters
+    public Integer getId(){
+		return id;
+	}
+
+	public void setId(Integer id){
+		this.id = id;
+	}
+
+	public Date getSnapshotDate(){
+		return snapshotDate;
+	}
+	
+	public Integer getSchoolId(){
+		return schoolId;
+	}
+	
+	public void setSchoolId(Integer schoolId){
+		this.schoolId = schoolId;
+	}
+
+	public void setSnapshotDate(Date snapshotDate){
+		this.snapshotDate = snapshotDate;
+	}
+
+	public Integer getPriorityScore(){
+		return priorityScore;
+	}
+
+	public void setPriorityScore(Integer priorityScore){
+		this.priorityScore = priorityScore;
+	}
+
+	public Integer getActiveIssues(){
+		return activeIssues;
+	}
+
+	public void setActiveIssues(Integer activeIssues){
+		this.activeIssues = activeIssues;
+	}
+
+	public Integer getUnderResolutionIssues(){
+		return underResolutionIssues;
+	}
+
+	public void setUnderResolutionIssues(Integer underResolutionIssues){
+		this.underResolutionIssues = underResolutionIssues;
+	}
+
+	public Integer getResolvedIssues(){
+		return resolvedIssues;
+	}
+
+	public void setResolvedIssues(Integer resolvedIssues){
+		this.resolvedIssues = resolvedIssues;
+	}
+
+	public Date getCreatedOn(){
+		return createdOn;
+	}
+
+	public void setCreatedOn(Date createdOn){
+		this.createdOn = createdOn;
+	}
+
+
+}
